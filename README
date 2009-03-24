@@ -1,0 +1,121 @@
+I've been reviewing the str-utils package, and I'd like to propose a few changes to the library.  I've included the code at the bottom.
+
+USE MULTI-METHODS
+
+I'd like to propose re-writing the following methods to used multi-methods.  Every single method will take an input called input-string.
+
+*re-split[input-string & remaining-inputs](...)*
+
+The remaining inputs can be dispatched based on a regex pattern, a list of patterns, or a map.
+
+regex pattern - splits a string into a list, like it does now.
+e.g. (re-split "1 2 3\n4 5 6" #"\n") => ("1 2 3" "4 5 6")
+
+list - this splits each element either like a map or a regex.  The map operator is applied recursively to each element
+e.g. (re-split "1 2 3\n4 5 6" (list #"\n" #"\s+")) => (("1" "2" "3") ("4" "5" "6"))
+
+map - this splits each element based on the inputs of the map.  It is how options are passed to the method.
+e.g (re-split "1 2 3" {:pattern #"\s+" :limit 2 :marshal-fn #(java.lang.Double/parseDouble %)}) => (1.0 2.0)
+The :pattern and :limit options are relatively straightforward.  The :marshal-fn is mapped after the string is split.
+
+These items can be chained together, as the following example shows
+e.g. (re-split "1 2 3\n4 5 6" (list #"\n" {:pattern #"\s+" :limit 2 :marshal-fn #(java.lang.Double/parseDouble %)})) => ((1.0 2.0) (4.0 5.0))
+
+In my opinion, the :marshal-fn is best used at the end of the list.  However, it could be used earlier in the list, but a exception will most likely be thrown.
+
+
+*re-partion[input-string & remaining-inputs]
+
+This methods behaves like the original re-partition method, with the remaining-inputs being able to a list or a pattern.  I don't see a need to change the behavior of this method at the moment.
+
+*re-gsub[input-string & remaining-inputs]
+
+This method can take a list or two atoms as the remaining inputs.
+
+Two atoms - 
+e.g. (re-gsub "1 2 3 4 5 6" #"\s" "") => "123456"
+
+A paired list
+e.g (re-gsub "1 2 3 4 5 6" '((#"\s" " ) (#"\d" "D"))) => "DDDDDD"
+
+*re-sub[input-string & remaining-inputs]
+
+Again, this method can take a list or two atoms as the remaining inputs.
+
+Two atoms
+e.g. (re-sub "1 2 3 4 5 6" #"\d" "D") => "D 2 3 4 5 6"
+
+A paired list
+e.g (re-sub "1 2 3 4 5 6" '((#"\d" "D") (#"\d" "E"))) => "D E 3 4 5 6"
+
+NEW PARSING HELPERS
+I've created four methods, str-before, str-before-inc, str-after, str-after-inc.  They are designed to help strip off parts of string before a regex.
+
+(str-before "Clojure Is Awesome" #"\s") => "Clojure"
+(str-before-inc "Clojure Is Awesome" #"\s") => "Clojure "
+(str-after "Clojure Is Awesome" #"\s") => "Is Awesome"
+(str-after-inc "Clojure Is Awesome" #"\s") => " Is Awesome"
+
+These methods can be used to help parse strings
+
+(str-before (str-after "<h4 ... >" #"<h4") ">") => ;the stuff in the middle
+
+NEW INFLECTORS
+I've added a few inflectors that I am familiar with from Rails.  My apologies if their origin is anther language.  I'd be interested in knowing where the method originated
+
+str-reverse
+This methods reverses a string
+e.g. (str-reverse "Clojure") => "erujolC"
+
+trim
+This is a convenience wrapper for the trim method java supplies
+e.g. (trim "  Clojure  ") => "Clojure"
+
+strip
+This is an alias for trim.  I accidently switch between *trim* and *strip* all the time.
+e.g. (strip "  Clojure  ") => "Clojure"
+
+ltrim
+This method removes the leading whitespace
+e.g. (ltrim "  Cloure  ") => "Clojure  "
+
+rtrim
+This method removes the trailing whitespace
+e.g. (ltrim "  Cloure  ") => "  Clojure"
+
+downcase
+This is a convenience wrapper for the toLowerCase method java supplies
+e.g. (downcase "Clojure") => "clojure"
+
+upcase
+This is a convenience wrapper for the toUpperCase method java supplies
+e.g. (upcase "Clojure") => "CLOJURE"
+
+capitalize
+This method capitalizes a string
+e.g (capitalize "clojure") => "Clojure"
+
+titleize, camelize, dasherize, underscore
+These methods manipulate "sentences", producing a consistent output.  Check the unit tests for more examples
+(titleize "clojure iS Awesome") => "Clojure Is Awesome"
+(camleize "clojure iS Awesome") => "clojureIsAwesome"
+(dasherize "clojure iS Awesome") => "clojure-is-awesome"
+(underscore "clojure iS Awesome") => "clojure_is_awesome"
+
+*FINAL THOUGHTS* 
+There are three more methods, str-join, chop, and chomp that were already in str-utils.  I change the implementation of the methods, but the behavior should be the same.
+
+There is a big catch with my proposed change.  The signature of re-split, re-partition, re-gsub and re-sub changes.  They will not be backwards compatible, and will break code.  However, I think the flexibility is worth it.
+
+*TO-DOs*
+There are a few more things I'd like to add, but that could done at a later date.  
+
+*Add more inflectors
+
+The following additions become pretty easy if the propsed re-gsub is included:
+
+*Add HTML-escape function (like Rails' h method)
+*Add Javascript-escape function (like Rails' javascript-escape method)
+*Add SQL-escape function
+
+Okay, that's everything I can think of for now.  I'd like to thank the Stuart Sierra, and all of the contributors to this library.  This is possible because I'm standing on their shoulders.
