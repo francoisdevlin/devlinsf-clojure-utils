@@ -92,9 +92,10 @@
 (deftest test-re-split-single-map
   (let [source-string "1\t2\t3\n4\t5\t6"]
     (is (= (re-split source-string {:pattern #"\n"}) '("1\t2\t3" "4\t5\t6")))
-    (is (= (re-split source-string {:pattern #"\n" :limit 1}) '("1\t2\t3")))
+    (is (= (re-split source-string {:pattern #"\n" :length 1}) '("1\t2\t3")))
+    (is (= (re-split source-string {:pattern #"\n" :offset 1}) '("4\t5\t6")))
     (is (= (re-split source-string {:pattern #"\n" :marshal-fn #(str % "\ta")}) '("1\t2\t3\ta" "4\t5\t6\ta")))
-    (is (= (re-split source-string {:pattern #"\n" :limit 1 :marshal-fn #(str % "\ta")}) '("1\t2\t3\ta")))
+    (is (= (re-split source-string {:pattern #"\n" :length 1 :marshal-fn #(str % "\ta")}) '("1\t2\t3\ta")))
     ))
 
 (deftest test-re-split-single-element-list
@@ -107,11 +108,11 @@
 
 (deftest test-re-split-mixed-list
   (let [source-string "1\t2\t3\n4\t5\t6"]
-    (is (= (re-split source-string (list {:pattern #"\n" :limit 1} #"\t")) '(("1" "2" "3"))))
-    (is (= (re-split source-string (list {:pattern #"\n" :limit 1} {:pattern #"\t" :limit 2})) '(("1" "2"))))
+    (is (= (re-split source-string (list {:pattern #"\n" :length 1} #"\t")) '(("1" "2" "3"))))
+    (is (= (re-split source-string (list {:pattern #"\n" :length 1} {:pattern #"\t" :offset 1 :length 2})) '(("2" "3"))))
     (is (= (re-split source-string (list 
-				    {:pattern #"\n" :limit 1} 
-				    {:pattern #"\t" :limit 2 :marshal-fn #(java.lang.Double/parseDouble %)}))
+				    {:pattern #"\n" :length 1} 
+				    {:pattern #"\t" :length 2 :marshal-fn #(java.lang.Double/parseDouble %)}))
 	   '((1.0 2.0))))
     (is (= (re-split source-string (list 
 				    {:pattern #"\n"} 
@@ -140,3 +141,10 @@
   (let [source-string "1 2 3 4 5 6"]
     (is (= (re-sub source-string #"\d" "D") "D 2 3 4 5 6"))
     (is (= (re-sub source-string '((#"\d" "D") (#"\d" "E"))) "D E 3 4 5 6"))))
+
+(deftest test-swap-letters
+  (is (= (swap-letters "ab") '("ba")))
+  (is (= (swap-letters "abc") '("bac" "acb"))))
+
+(deftest test-try-letters
+  (is (= (try-letter "a" "dog")) '("adog" "aog" "daog" "dag" "doag" "doa" "doga")))

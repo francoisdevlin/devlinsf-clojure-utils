@@ -8,11 +8,17 @@
   [separator sequence]
   (apply str (interpose separator sequence)))
 
-
 (defmulti re-split (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
 
+;This methods does the actual work of the re-split method.  It is lazy.
 (defmethod re-split java.util.regex.Pattern
-  ([string #^java.util.regex.Pattern pattern] (seq (. pattern (split string)))))
+  [input-string #^java.util.regex.Pattern pattern]
+  ((fn step[input-sequence]
+     (lazy-seq
+       (if (first input-sequence)
+	 (cons (first input-sequence) (step (drop 2 input-sequence)))
+	 '())))
+   (re-partition input-string pattern)))
 
 (defmethod re-split clojure.lang.PersistentList
   [input-string patterns]
@@ -25,9 +31,12 @@
 
 (defmethod re-split clojure.lang.PersistentArrayMap
   [input-string map-options]
-  (cond (:limit map-options) (take (:limit map-options) (re-split input-string (dissoc map-options :limit)))
-	(:marshal-fn map-options) (map (:marshal-fn map-options) (re-split input-string (dissoc map-options :marshal-fn)))
-	'true (re-split input-string (:pattern map-options))))
+  (cond 
+   (:marshal-fn map-options) (map (:marshal-fn map-options) (re-split input-string (dissoc map-options :marshal-fn)))
+   (:length map-options) (take (:length map-options) (re-split input-string (dissoc map-options :length)))
+   (:offset map-options) (drop (:offset map-options) (re-split input-string (dissoc map-options :offset)))
+   'true (re-split input-string (:pattern map-options))))
+
 
 (defmulti re-partition (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
 
@@ -125,15 +134,15 @@
 
 (defn str-before-inc [input-string regex]
   (let [matches (re-partition input-string regex)]
-    (str (first matches) (second matches))))
+    (apply str (take 2 matches))))
 
 (defn str-after [input-string regex]
   (let [matches (re-partition input-string regex)]
-    (str-join "" (rest (rest matches)))))
+    (apply str (drop 2 matches))))
 
 (defn str-after-inc [input-string regex]
   (let [matches (re-partition input-string regex)]
-    (str-join "" (rest matches))))
+    (apply str (rest matches))))
 
 
 ;;; Inflectors
@@ -143,7 +152,6 @@
   [input-string]
   (apply str (reverse input-string)))
   
-
 (defn upcase 
   "Converts the entire string to upper case"
   [input-string]
@@ -214,9 +222,61 @@
   (let [words (re-split input-string #"[\s_-]+")]
     (str-join "_" (map downcase words))))
 
+(defn nearby
+  "The intent of this method is to aid spellchecking.  This method generates
+a set of nearby strings.  It takes an optional sequence that can be used as 
+potential missing strings.  The default is a-z, and is intially geared towards
+english speakers."
+  ([input-string] (nearby input-string (cons "" "etaoinshrdlcumwfgypbvkjxqz")))
+  ([input-string replacement-seq]
+     (apply concat (swap-letters input-string)
+	    (map #(try-letter % input-string) replacement-seq))))
+
+(defn swap-letters
+  [input-string]
+  (cond
+   (< (count input-string) 2) '()
+   'true ((fn step
+	    [head tail]
+	    (let [a (first tail)
+		  b (second tail)]
+	      (if (nil? b)
+		'() 
+		(cons (str head b a (apply str (drop 2 tail))) 
+		      (step 
+		       (str head a) 
+		       (rest tail))))))
+	  "" input-string)))
+
+(defn try-letter
+  [letter input-string]
+  ((fn insert [head tail] 
+    (if (first tail)
+      (cons (str head letter (apply str (rest tail)))
+       (cons (str head letter tail)
+	     (insert (str head (first tail)) (apply str (rest tail)))))
+      (list (str head letter))))
+  "" input-string))
+
 ;;; Escapees
 
 ;(defn sql-escape[x])
-;(defn html-escape[x])
-;(defn javascript-escape[x])
-;(defn pdf-escape)
+
+(defn html-escape
+  "This function helps prevent XSS attacks, by disallowing certain charecters"
+  [input-string]
+  (let [escaped-charecters '((#"&" " &amp; ")
+			  (#"<" " &gt; ")
+			  (#">" " &lt; ")
+			  (#"\"" " &quot; "))]
+    (re-gsub input-string escaped-charecters)))
+
+(defn javascript-escape
+  "This function helps prevent XSS attacks, by disallowing certain charecters"
+  [input-string]
+  (let [escaped-charecters '((#"&" "\u0026")
+			  (#"<" "\u003C")
+			  (#">" "\u003E"))]
+    (re-gsub input-string escaped-charecters)))
+
+;(defn pdf-escape[x])
