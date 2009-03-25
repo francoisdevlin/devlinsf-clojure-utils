@@ -2,9 +2,17 @@
 <head>
 	<title>Propose Changes to clojure.contrib.str-utils</title>
 	<style>
-	code{
+	.code-block{
 		background-color:#FFFFCC;
-		width:30em;
+		border-color:#CCCCCC;
+		border-width:2px;
+		border-style:solid;
+		width:35em;
+		margin-left:auto;
+		margin-right:auto;	
+		margin-top:10px;
+		margin-bottom:10px;
+		padding:5px;
 	}
 	body{
 		width:40em;
@@ -16,7 +24,7 @@
 	}
 	#page-content{
 		border-color:#990000;
-		border-width:0px 4px 0px 4px;
+		border-width:0px 2px 0px 2px;
 		border-style:solid;
 		background-color:#FFFFFF;
 		padding:5px;
@@ -26,222 +34,358 @@
 </head>
 <body>
 	<div id="page-content">
-<h1 style="text-align:center">My Proposed changes to str-utils </h1>
-<h4 style="text-align:center">Sean Devlin</h4>
-<h4 style="text-align:center">March 23, 2009</h4>
-<p>
-	I've been reviewing the str-utils package, and I'd like to propose a few changes to the library.  I've included the code at the bottom.
-</p>
+		<h1 style="text-align:center">My Proposed changes to str-utils </h1>
+		<h4 style="text-align:center">Sean Devlin</h4>
+		<h4 style="text-align:center">March 23, 2009</h4>
+		<p>
+			I've been reviewing the str-utils package, and I'd like to propose a few changes to the library.  I've included the code at the bottom.
+		</p>
 
-<h2>Use Multi-Methods</h2>
-<p>
-I'd like to propose re-writing the following methods to used multi-methods.  Every single method will take an input called input-string,
-and a variable set of inputs called remaining-inputs.  The mutli-dispatch will make decide what to do based on the remaining inputs.
-Specifically, I've used
-</p>
-<code>
-	(class (first remaining-inputs))<br>
-</code>
-<p>
-repeatedly.  The two most interesting classes are java.util.regex.Pattern, and clojure.lang.PersistentList.  I deliberately decided to <b>not</b>
-use sequences, because I believed order was important.  One method takes a map as an input, but this is so that a tuple could be passed as an options
-hash.
-</p>
-<br>
+		<h2>Use Multi-Methods</h2>
+		<p>
+			I'd like to propose re-writing the following methods to used multi-methods.  Every single method will take an input called input-string,
+			and a variable set of inputs called remaining-inputs.  The mutli-dispatch will make decide what to do based on the remaining inputs.
+			Specifically, I've used
+		</p>
+		<div class="code-block">		
+			<code>
+				(class (first remaining-inputs))<br>
+			</code>
+		</div>
+		<p>
+			repeatedly.  The two most interesting classes are <code>java.util.regex.Pattern</code>, and <code>clojure.lang.PersistentList</code>.  I deliberately decided to <b>not</b>
+			use sequences, because I believed order was important.  One method takes a map as an input, but this is so that a tuple could be passed as an options
+			hash.
+		</p>
 
-<h3>re-split[input-string & remaining-inputs](...)</h3>
-<div class="function-description">
-	The remaining inputs can be dispatched based on a regex pattern, a list of patterns, or a map.<br>
+		<h3><code>re-partion[input-string & remaining-inputs](...)</code></h3>
+		<div class="function-description">
+			This methods behaves like the original re-partition method, with the remaining-inputs being able to a list or a pattern.  It returns a lazy sequence, and
+			is used as a basis for for several other methods.
+		</div>
 
-	<h4>regex pattern</h4>
-	This splits a string into a list, like it does now.<br>
-	<code>
-	(re-split "1 2 3\n4 5 6" #"\n") => ("1 2 3" "4 5 6")<br>
-	</code>
-	
-	<h4>list</h4>
-	This splits each element either like a map or a regex.  The map operator is applied recursively to each element<br>
-	<code>
-	(re-split "1 2 3\n4 5 6" (list #"\n" #"\s+")) => (("1" "2" "3") ("4" "5" "6"))<br>
-	</code>
+		<h3><code>re-split[input-string & remaining-inputs](...)</code></h3>
+		<div class="function-description">
+			The remaining inputs can be dispatched based on a regex pattern, a list of patterns, or a map.  The regex method is the basis, and does the actual work.<br>
 
-	<h4>map</h4>
-	This splits each element based on the inputs of the map.  It is how options are passed to the method.<br>
-	
-	<code>
-	(re-split "1 2 3" {:pattern #"\s+" :limit 2 :marshal-fn #(java.lang.Double/parseDouble %)}) => (1.0 2.0)<br>
-	</code>
-	
-	The :pattern and :limit options are relatively straightforward.  The :marshal-fn is mapped after the string is split.<br>
+			<h4>Regex</h4>
+			This method splits a string into a list based on a regex.  It depends on the re-partition method, and returns a lazy sequence.<br>
 
-	These items can be chained together, as the following example shows<br>
-	<code>
-	(re-split "1 2 3\n4 5 6" (list #"\n" {:pattern #"\s+" :limit 2 :marshal-fn #(java.lang.Double/parseDouble %)})) => ((1.0 2.0) (4.0 5.0))<br>
-	</code>
+			<div class="code-block">
+				<code>
+					(re-split "1 2 3\n4 5 6" #"\n") => ("1 2 3" "4 5 6")<br>
+				</code>
+			</div>
 
-	In my opinion, the :marshal-fn is best used at the end of the list.  However, it could be used earlier in the list, but a exception will most likely be thrown.
-</div>
+			<h4>Map</h4>
+			This splits each element based on the inputs of the map.  It is how options are passed to the method.<br>
 
-<h4>re-partion[input-string & remaining-inputs]</h4>
-<div class="function-description">
+			<div class="code-block">
+				<code>
+					(re-split "1 2 3" {:pattern #"\s+" :offset 1}) => (2.0 3.0)<br>
+					(re-split "1 2 3" {:pattern #"\s+" :length 2}) => (1.0 2.0)<br>
+					(re-split "1 2 3" {:pattern #"\s+" :marshal-fn #(java.lang.Double/parseDouble %)}) => (1.0 2.0 3.0)<br>
+				</code>
+			</div>
 
-This methods behaves like the original re-partition method, with the remaining-inputs being able to a list or a pattern.  I don't see a need to change the behavior of this method at the moment.
-</div>
+			The <code>:pattern</code>, <code>:offset</code>, and <code>:length</code> options are relatively straightforward.  The :marshal-fn is mapped after the string is split.<br>
 
-<h4>re-gsub[input-string & remaining-inputs]</h4>
-<div class="function-description">
+			<h4>List</h4>
+			This splits each element either like a map (datatype) or a regex.  The map operator is applied recursively to each element<br>
 
-This method can take a list or two atoms as the remaining inputs.<br>
+			<div class="code-block">
+				<code>
+					(re-split "1 2 3\n4 5 6" (list #"\n" #"\s+")) => (("1" "2" "3") ("4" "5" "6"))<br>
+				</code>
+			</div>
 
-Two atoms<br>
-<code>
-(re-gsub "1 2 3 4 5 6" #"\s" "") => "123456"<br>
-</code>
+			<h4>Chaining</h4>
+			These items can be chained together, as the following example shows<br>
+			<div class="code-block">
+				<code>
+					(re-split "1 2 3\n4 5 6" <br>
+					(list #"\n" {:pattern #"\s+" <br>
+					:length 2 <br>
+					:marshal-fn #(java.lang.Double/parseDouble %)}))<br>
+					=> ((1.0 2.0) (4.0 5.0))<br>
+				</code>
+			</div>
+			In my opinion, the <code>:marshal-fn</code> is best used at the end of the list.  However, it could be used earlier in the list, but a exception will most likely be thrown.
+		</div>
 
-A paired list<br>
-<code>
-(re-gsub "1 2 3 4 5 6" '((#"\s" " ) (#"\d" "D"))) => "DDDDDD"<br>
-</code>
+		<h3><code>re-gsub[input-string & remaining-inputs](...)</code></h3>
+		<div class="function-description">
 
-</div>
+			This method can take a list or two atoms as the remaining inputs.<br>
 
-<h4>re-sub[input-string & remaining-inputs]</h4>
-<div class="function-description">
+			Two atoms<br>
+			<div class="code-block">
+				<code>
+					(re-gsub "1 2 3 4 5 6" #"\s" "") => "123456"<br>
+				</code>
+			</div>
+			A paired list<br>
+			<div class="code-block">
+				<code>
+					(re-gsub "1 2 3 4 5 6" '((#"\s" " ) (#"\d" "D"))) => "DDDDDD"<br>
+				</code>
+			</div>
 
-Again, this method can take a list or two atoms as the remaining inputs.<br>
+		</div>
 
-Two atoms<br>
-<code>
-	(re-sub "1 2 3 4 5 6" #"\d" "D") => "D 2 3 4 5 6"<br>
-</code>
+		<h3><code>re-sub[input-string & remaining-inputs](...)</code></h3>
+		<div class="function-description">
 
-A paired list<br>
-<code>
-	(re-sub "1 2 3 4 5 6" '((#"\d" "D") (#"\d" "E"))) => "D E 3 4 5 6"<br>
-</code>
+			Again, this method can take a list or two atoms as the remaining inputs.<br>
 
-</div>
+			Two atoms<br>
+			<div class="code-block">
+				<code>
+					(re-sub "1 2 3 4 5 6" #"\d" "D") => "D 2 3 4 5 6"<br>
+				</code>
+			</div>
 
-<h2>New Parsing Helpers</h2>
-<div class="function-description">
-	I've created four methods, str-before, str-before-inc, str-after, str-after-inc.  They are designed to help strip off parts of string before a regex.<br>
-	
-	<code>
-	(str-before "Clojure Is Awesome" #"\s") => "Clojure" <br>
-	(str-before-inc "Clojure Is Awesome" #"\s") => "Clojure "<br>
-	(str-after "Clojure Is Awesome" #"\s") => "Is Awesome"<br>
-	(str-after-inc "Clojure Is Awesome" #"\s") => " Is Awesome"<br>
-	</code>
-	
-	These methods can be used to help parse strings<br>
-	<code>
-	(str-before (str-after "&lt h4 ... &gt" #"&lth4") "&gt") => ;the stuff in the middle
-	</code>
-</div>
+			A paired list<br>
+			<div class="code-block">
+				<code>
+					(re-sub "1 2 3 4 5 6" '((#"\d" "D") (#"\d" "E"))) => "D E 3 4 5 6"<br>
+				</code>
+			</div>
 
-	<h2>
-	New Inflectors
-	</h2>
-I've added a few inflectors that I am familiar with from Rails.  My apologies if their origin is anther language.  I'd be interested in knowing where the method originated
+		</div>
 
-<h4>str-reverse</h4>
-<div class="brief-function-description">
-	This methods reverses a string<br>
-<code>
-	(str-reverse "Clojure") => "erujolC"
-</code>
-</div>
+		<h2>The <code>nearby</code> Function</h2>
+		<p>
+			The nearby function is designed to assist with a spell checker, inspired by the example from Peter Norvig.
+			
+			<h3>Signatures</h3>
+			<code>
+				<ul>
+					<li><b>nearby</b> input-string</li>
+					<li><b>nearby</b> input-string seq</li>
+				</ul>
+			</code>
+			
+			Here's an example.
+			
+			<div class="code-block">
+				<code>					
+					(nearby "cat" (seq "abc")) => <br>("act" "atc"<br>
+						"acat" "aat" "caat" "cat" "caat" "caa" "cata"<br>
+						"bcat" "bat" "cbat" "cbt" "cabt" "cab" "catb"<br>
+						"ccat" "cat" "ccat" "cct" "cact" "cac" "catc")
+				</code>
+			</div>
+			
+			The resulting sequence is lazy.  In order to use it in a spellchecker, try using it like this:
+			
+			<div class="code-block">
+				<code>					
+					(set (take <i>number</i> (nearby "cat" (seq "abc"))))
+				</code>
+			</div>
+			
+			If the function is called with only one argument, it behaves like this.
 
-<h4>trim</h4>
-<div class="brief-function-description">
-	This is a convenience wrapper for the trim method java supplies<br>
-	<code>
-		(trim "  Clojure  ") => "Clojure"
-	</code>
-</div>
+			<div class="code-block">
+				<code>					
+					(nearby "cat") =><br> (nearby "cat" (cons "" "etaoinshrdlcumwfgypbvkjxqz"))
+				</code>
+			</div>
+			
+			The strange order was chosen because that is the english alphabet sorted by frequency.  This way the earliest entries will have the
+			highest chance of being a valid word.
+			
+		</p>
 
-<h4>strip</h4>
-<div class="brief-function-description">
-	This is an alias for trim.  I accidently switch between *trim* and *strip* all the time.<br>
-	<code>
-		(strip "  Clojure  ") => "Clojure"
-	</code>
-</div>
+		<h2>New Parsing Helpers</h2>
+		<div class="function-description">
+			I've created four methods, <code>str-before, str-before-inc, str-after, str-after-inc</code>.  They are designed to help strip off parts of string before a regex.<br>
 
-<h4>ltrim</h4>
-<div class="brief-function-description">
-	This method removes the leading whitespace<br>
-	<code>
-		(ltrim "  Cloure  ") => "Clojure  "
-	</code>
-</div>
+			<div class="code-block">	
+				<code>
+					<table>
+						<tr>
+							<td>(str-before "Clojure Is Awesome" #"\s")</td>
+							<td>=></td>
+							<td>"Clojure"</td>
+						</tr>
+						<tr>
+							<td>(str-before-inc "Clojure Is Awesome" #"\s")</td>
+							<td>=></td>
+							<td>"Clojure "</td>
+						</tr>
+						<tr>
+							<td>(str-after "Clojure Is Awesome" #"\s")</td>
+							<td>=></td>
+							<td>"Is Awesome"</td>
+						</tr>
+						<tr>
+							<td>(str-after-inc "Clojure Is Awesome" #"\s")</td>
+							<td>=></td>
+							<td>" Is Awesome"</td>
+						</tr>						
+					</table>
+				</code>
+			</div>
+			
+			<!--
+			<table>
+				<tr>
+					<td></td>
+					<td>=></td>
+					<td></td>
+				</tr>
+			</table> -->
 
-<h4>rtrim</h4>
-<div class="brief-function-description">
-This method removes the trailing whitespace<br>
-	<code>
-		(ltrim "  Cloure  ") => "  Clojure"
-	</code>
-</div>
+			These methods can be used to help parse strings<br>
+			<div class="code-block">
+				<code>
+					(str-before (str-after "&lt h4 ... &gt" #"&lth4") "&gt") <br>=> ;the stuff in the middle
+				</code>
+			</div>
+		</div>
 
-<h4>downcase</h4>
-<div class="brief-function-description">
-	This is a convenience wrapper for the toLowerCase method java supplies<br>
-	<code>
-		(downcase "Clojure") => "clojure"
-	</code>
-</div>
+		<h2>
+			New Inflectors
+		</h2>
+		I've added a few inflectors that I am familiar with from Rails.  My apologies if their origin is anther language.  I'd be interested in knowing where the method originated
 
-<h4>upcase</h4>
-<div class="brief-function-description">
-	This is a convenience wrapper for the toUpperCase method java supplies<br>
-	<code>
-		(upcase "Clojure") => "CLOJURE"
-	</code>
-</div>
+		<h4>str-reverse</h4>
+		<div class="brief-function-description">
+			This methods reverses a string<br>
+			<div class="code-block">
+				<code>
+					(str-reverse "Clojure") => "erujolC"
+				</code>
+			</div>
+		</div>
 
-<h4>capitalize</h4>
-<div class="brief-function-description">
-	This method capitalizes a string<br>
-	<code>
-		(capitalize "clojure") => "Clojure"
-	</code>
-</div>
+		<h4>trim</h4>
+		<div class="brief-function-description">
+			This is a convenience wrapper for the trim method java supplies<br>
+			<div class="code-block">
+				<code>
+					(trim "  Clojure  ") => "Clojure"
+				</code>
+			</div>
+		</div>
 
-<h4>titleize, camelize, dasherize, underscore</h4>
-<div class="brief-function-description">
-These methods manipulate "sentences", producing a consistent output.  Check the unit tests for more examples<br>
-	<code>
-		(titleize "clojure iS Awesome") => "Clojure Is Awesome"<br>
-		(camleize "clojure iS Awesome") => "clojureIsAwesome"<br>
-		(dasherize "clojure iS Awesome") => "clojure-is-awesome"<br>
-		(underscore "clojure iS Awesome") => "clojure_is_awesome"<br>
-	</code>
-</div>
+		<h4>strip</h4>
+		<div class="brief-function-description">
+			This is an alias for trim.  I accidently switch between *trim* and *strip* all the time.<br>
+			<div class="code-block">
+				<code>
+					(strip "  Clojure  ") => "Clojure"
+				</code>
+			</div>
+		</div>
 
-<h2>Closing thoughts</h2>
-<p>
-There are three more methods, str-join, chop, and chomp that were already in str-utils.  I change the implementation of the methods, but the behavior should be the same.<br>
+		<h4>ltrim</h4>
+		<div class="brief-function-description">
+			This method removes the leading whitespace<br>
+			<div class="code-block">
+				<code>
+					(ltrim "  Cloure  ") => "Clojure  "
+				</code>
+			</div>
+		</div>
 
-There is a big catch with my proposed change.  The signature of re-split, re-partition, re-gsub and re-sub changes.  They will not be backwards compatible, and will break code.  However, I think the flexibility is worth it.
-</p>
-<h2>TO-DOs</h2>
-There are a few more things I'd like to add, but that could done at a later date.  
+		<h4>rtrim</h4>
+		<div class="brief-function-description">
+			This method removes the trailing whitespace<br>
+			<div class="code-block">
+				<code>
+					(ltrim "  Cloure  ") => "  Clojure"
+				</code>
+			</div>
+		</div>
 
-<ul>
-	<li>Add more inflectors</li>
-</ul>
+		<h4>downcase</h4>
+		<div class="brief-function-description">
+			This is a convenience wrapper for the toLowerCase method java supplies<br>
+			<div class="code-block">
+				<code>
+					(downcase "Clojure") => "clojure"
+				</code>
+			</div>
+		</div>
 
-The following additions become pretty easy if the propsed re-gsub is included:
-<ul>
-	<li>Add HTML-escape function (like Rails' h method)</li>
-	<li>Add Javascript-escape function (like Rails' javascript-escape method)</li>
-	<li>Add SQL-escape function</li>
-</ul>
+		<h4>upcase</h4>
+		<div class="brief-function-description">
+			This is a convenience wrapper for the toUpperCase method java supplies<br>
+			<div class="code-block">
+				<code>
+					(upcase "Clojure") => "CLOJURE"
+				</code>
+			</div>
+		</div>
 
-<p>
-Okay, that's everything I can think of for now.  I'd like to thank the Stuart Sierra, and all of the contributors to this library.  This is possible because I'm standing on their shoulders.
-</p>
-</div>
+		<h4>capitalize</h4>
+		<div class="brief-function-description">
+			This method capitalizes a string<br>
+			<div class="code-block">
+				<code>
+					(capitalize "clojure") => "Clojure"
+				</code>
+			</div>
+		</div>
+
+		<h4>titleize, camelize, dasherize, underscore</h4>
+		<div class="brief-function-description">
+			These methods manipulate "sentences", producing a consistent output.  Check the unit tests for more examples<br>
+			<div class="code-block">
+				<code>
+					<table>
+						<tr>
+							<td>(titleize "clojure iS Awesome")</td>
+							<td>=></td>
+							<td>"Clojure Is Awesome"</td>
+						</tr>
+						<tr>
+							<td>(camleize "clojure iS Awesome")</td>
+							<td>=></td>
+							<td>"clojureIsAwesome"</td>
+						</tr>
+						<tr>
+							<td>(dasherize "clojure iS Awesome")</td>
+							<td>=></td>
+							<td>"clojure-is-awesome"</td>
+						</tr>
+						<tr>
+							<td>(underscore "clojure iS Awesome")</td>
+							<td>=></td>
+							<td>"clojure_is_awesome"</td>
+						</tr>
+					</table>
+				</code>
+			</div>
+		</div>
+
+		<h2>Closing thoughts</h2>
+		<p>
+			There are three more methods, str-join, chop, and chomp that were already in str-utils.  I change the implementation of the methods, but the behavior should be the same.			
+		</p>
+		<p>
+			There is a big catch with my proposed change.  The signature of re-split, re-partition, re-gsub and re-sub changes.  They will not be backwards compatible, and will break code.  However, I think the flexibility is worth it.
+		</p>
+		<h2>TO-DOs</h2>
+		There are a few more things I'd like to add, but that could done at a later date.  
+
+		<ul>
+			<li>Add more inflectors</li>
+		</ul>
+
+		The following additions become pretty easy if the propsed re-gsub is included:
+		<ul>
+			<li>Add HTML-escape function (like Rails' <code>h</code> method)</li>
+			<li>Add Javascript-escape function (like Rails' <code>escape_javascript</code> method)</li>
+			<li>Add SQL-escape function</li>
+		</ul>
+
+		<p>
+			Okay, that's everything I can think of for now.  I'd like to thank the Stuart Sierra, and all of the contributors to this library.  This is possible because I'm standing on their shoulders.
+		</p>
+	</div>
 </body>
 </html>
