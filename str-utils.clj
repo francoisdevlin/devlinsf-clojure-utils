@@ -204,19 +204,19 @@
 
 (defn titleize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is capitalized, and the result is joined with \" \"."
-  [input-string]
+  [#^String input-string]
   (let [words (re-split input-string #"[\s_-]+")]
     (str-join " " (map capitalize words))))
 
 (defn camelize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  The first word is captialized, and the rest are downcased, and the result is joined with \"\"."
-  [input-string]
+  [#^String input-string]
   (let [words (re-split input-string #"[\s_-]+")]
     (str-join "" (cons (downcase (first words)) (map capitalize (rest words))))))
 
 (defn dasherize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is downcased, and the result is joined with \"-\"."
-  [input-string]
+  [#^String input-string]
   (let [words (re-split input-string #"[\s_-]+")]
     (str-join "-" (map downcase words))))
 
@@ -226,6 +226,27 @@
   (let [words (re-split input-string #"[\s_-]+")]
     (str-join "_" (map downcase words))))
 
+;;;The code for the singularize function was based on functions contributed by Brian Doyle and John Hume
+(defn singularize
+  "This is an early attempt at Rails' singulaize method."
+  [#^String input-string]
+  (let [lc (downcase input-string)]
+    (cond
+      (.endsWith lc "ies") (re-sub lc #"ies$" "y")
+      (.endsWith lc "es") (re-sub lc #"es$" "")
+      :else (re-sub lc #"s$" ""))))
+ 
+;;;The code for the pluralize function was based on functions contributed by Brian Doyle and John Hume
+(defn pluralize
+  "This is an early attempt at Rails' pluralize method."
+  [#^String input-string]
+  (let [lc (downcase input-string)]
+    (cond
+      (.endsWith lc "y") (re-sub lc #"y$" "ies")
+      (some #(.endsWith lc %) ["s" "z" "ch" "sh" "x"]) (str lc "es")
+      :else (str lc "s"))))
+
+;;; The nearby method
 (defn nearby
   "The intent of this method is to aid spellchecking.  This method generates
 a set of nearby strings.  It takes an optional sequence that can be used as 

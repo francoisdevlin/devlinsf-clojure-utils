@@ -273,7 +273,7 @@
 
 		<h4>strip</h4>
 		<div class="brief-function-description">
-			This is an alias for trim.  I accidently switch between *trim* and *strip* all the time.<br>
+			This is an alias for trim.  I accidently switch between <code>trim</code> and <code>strip</code> all the time.<br>
 			<div class="code-block">
 				<code>
 					(strip "  Clojure  ") => "Clojure"
@@ -356,6 +356,70 @@
 							<td>(underscore "clojure iS Awesome")</td>
 							<td>=></td>
 							<td>"clojure_is_awesome"</td>
+						</tr>
+					</table>
+				</code>
+			</div>
+		</div>
+		
+		<h4>pluralize</h4>
+		<div>
+			This is an early attempt at Rails' <code>pluralaize</code> function. The code for the <code>pluralize</code>
+			function was based on functions contributed by Brian Doyle.
+			<div class="code-block">
+				<code>
+					<table>
+						<tr>
+							<td>(pluralize "foo")</td>
+							<td>=></td>
+							<td>"foos"</td>
+						</tr>
+						<tr>
+							<td>(pluralize "beach")</td>
+							<td>=></td>
+							<td>"beaches"</td>
+						</tr>
+						<tr>
+							<td>(pluralize "baby")</td>
+							<td>=></td>
+							<td>"babies"</td>
+						</tr>
+						<tr>
+							<td>(pluralize "bus")</td>
+							<td>=></td>
+							<td>"buses"</td>
+						</tr>
+					</table>
+				</code>
+			</div>
+		</div>
+
+		<h4>singularize</h4>
+		<div>
+			This is an early attempt at Rails' <code>singularize</code> function. The code for the <code>singulaize</code>
+			function was based on functions contributed by Brian Doyle.
+			<div class="code-block">
+				<code>
+					<table>
+						<tr>
+							<td>(singularize "foos")</td>
+							<td>=></td>
+							<td>"foo"</td>
+						</tr>
+						<tr>
+							<td>(singularize "beaches")</td>
+							<td>=></td>
+							<td>("beach")</td>
+						</tr>
+						<tr>
+							<td>(singularize "babies")</td>
+							<td>=></td>
+							<td>"baby"</td>
+						</tr>
+						<tr>
+							<td>(singularize "stops")</td>
+							<td>=></td>
+							<td>"stop"</td>
 						</tr>
 					</table>
 				</code>

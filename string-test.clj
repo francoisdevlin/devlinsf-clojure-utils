@@ -135,7 +135,7 @@
   (let [source-string "1\t2\t3\n4\t5\t6"]
     (is (= (re-gsub source-string #"\s+" " ") "1 2 3 4 5 6"))
     (is (= (re-gsub source-string '((#"\s+" " "))) "1 2 3 4 5 6"))
-    (is (= (re-gsub source-string '((#"\s+" " ") (#"\d" "D"))) "D D D D D D"))))
+    (is (= (re-gsub source-string '((#"\s+" " ") (#"\d" "D"))) "D D D D D D")))
     
 (deftest test-re-sub
   (let [source-string "1 2 3 4 5 6"]
@@ -143,8 +143,30 @@
     (is (= (re-sub source-string '((#"\d" "D") (#"\d" "E"))) "D E 3 4 5 6"))))
 
 (deftest test-swap-letters
-  (is (= (swap-letters "ab") '("ba")))
-  (is (= (swap-letters "abc") '("bac" "acb"))))
+  (are (= (swap-letters _1) _2)
+       "ab" '("ba")
+       "abc" '("bac" "acb")))
 
 (deftest test-try-letters
   (is (= (try-letter "a" "dog")) '("adog" "aog" "daog" "dag" "doag" "doa" "doga")))
+
+;;;The code for the test-singularize function was based on functions contributed by Brian Doyle
+(deftest test-singularize 
+  (are (= _1 (singularize _2))
+    "foo" "foos"
+    "baby" "babies"
+    "beach" "beaches"
+    "box" "boxes"
+    "bush" "bushes"
+    "bus" "buses"
+    "stop" "stops"))
+
+;;;The code for the test-pluralize function was based on functions contributed by Brian Doyle 
+(deftest test-pluralize (are (= _1 (pluralize _2))
+    "foos" "foo"
+    "beaches" "beach"
+    "babies" "baby"
+    "boxes" "box"
+    "bushes" "bush"
+    "buses" "bus"
+    "stops" "stop"))
