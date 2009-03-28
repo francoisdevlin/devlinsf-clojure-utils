@@ -10,36 +10,6 @@
   [separator sequence]
   (apply str (interpose separator sequence)))
 
-(defmulti re-split (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
-
-;This methods does the actual work of the re-split method.  It is lazy.
-(defmethod re-split java.util.regex.Pattern
-  [#^String input-string #^java.util.regex.Pattern pattern]
-  ((fn step[input-sequence]
-     (lazy-seq
-       (if (first input-sequence)
-	 (cons (first input-sequence) (step (drop 2 input-sequence)))
-	 '())))
-   (re-partition input-string pattern)))
-
-(defmethod re-split clojure.lang.PersistentList
-  [#^String input-string patterns]
-  (let [reversed (reverse patterns)
-	pattern (first reversed)
-	remaining (rest reversed)]
-    (if (empty? remaining)
-      (re-split input-string pattern)
-      (map #(re-split % pattern) (re-split input-string (reverse remaining))))))
-
-(defmethod re-split clojure.lang.PersistentArrayMap
-  [#^String input-string map-options]
-  (cond 
-   (:marshal-fn map-options) (map (:marshal-fn map-options) (re-split input-string (dissoc map-options :marshal-fn)))
-   (:length map-options) (take (:length map-options) (re-split input-string (dissoc map-options :length)))
-   (:offset map-options) (drop (:offset map-options) (re-split input-string (dissoc map-options :offset)))
-   'true (re-split input-string (:pattern map-options))))
-
-
 (defmulti re-partition (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
 
 ;  "Splits the string into a lazy sequence of substrings, alternating
@@ -72,6 +42,37 @@
     (if (empty? remaining)
       (re-partition input-string pattern)
       (map #(re-partition % pattern) (re-partition input-string (reverse remaining))))))
+
+(defmulti re-split (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
+
+;This methods does the actual work of the re-split method.  It is lazy.
+(defmethod re-split java.util.regex.Pattern
+  [#^String input-string #^java.util.regex.Pattern pattern]
+  ((fn step[input-sequence]
+     (lazy-seq
+       (if (first input-sequence)
+	 (cons (first input-sequence) (step (drop 2 input-sequence)))
+	 '())))
+   (re-partition input-string pattern)))
+
+(defmethod re-split clojure.lang.PersistentList
+  [#^String input-string patterns]
+  (let [reversed (reverse patterns)
+	pattern (first reversed)
+	remaining (rest reversed)]
+    (if (empty? remaining)
+      (re-split input-string pattern)
+      (map #(re-split % pattern) (re-split input-string (reverse remaining))))))
+
+(defmethod re-split clojure.lang.PersistentArrayMap
+  [#^String input-string map-options]
+  (cond 
+   (:marshal-fn map-options) (map (:marshal-fn map-options) (re-split input-string (dissoc map-options :marshal-fn)))
+   (:length map-options) (take (:length map-options) (re-split input-string (dissoc map-options :length)))
+   (:offset map-options) (drop (:offset map-options) (re-split input-string (dissoc map-options :offset)))
+   'true (re-split input-string (:pattern map-options))))
+
+
 
 (defmulti re-gsub (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
 
@@ -226,6 +227,10 @@
   (let [words (re-split input-string #"[\s_-]+")]
     (str-join "_" (map downcase words))))
 
+(defn keywordize
+  [input-string]
+  (str (trim (dasherize (re-gsub (downcase input-string) #"[\(\)\"\'\:\#]" "")))))
+
 ;;;The code for the singularize function was based on functions contributed by Brian Doyle and John Hume
 (defn singularize
   "This is an early attempt at Rails' singulaize method."
@@ -245,17 +250,6 @@
       (.endsWith lc "y") (re-sub lc #"y$" "ies")
       (some #(.endsWith lc %) ["s" "z" "ch" "sh" "x"]) (str lc "es")
       :else (str lc "s"))))
-
-;;; The nearby method
-(defn nearby
-  "The intent of this method is to aid spellchecking.  This method generates
-a set of nearby strings.  It takes an optional sequence that can be used as 
-potential missing strings.  The default is a-z, and is intially geared towards
-english speakers."
-  ([#^String input-string] (nearby input-string (cons "" "etaoinshrdlcumwfgypbvkjxqz")))
-  ([#^String input-string replacement-seq]
-     (apply concat (swap-letters input-string)
-	    (map #(try-letter % input-string) replacement-seq))))
 
 (defn swap-letters
   [#^String input-string]
@@ -282,6 +276,18 @@ english speakers."
 	     (insert (str head (first tail)) (apply str (rest tail)))))
       (list (str head letter))))
   "" input-string))
+
+;;; The nearby method
+(defn nearby
+  "The intent of this method is to aid spellchecking.  This method generates
+a set of nearby strings.  It takes an optional sequence that can be used as 
+potential missing strings.  The default is a-z, and is intially geared towards
+english speakers."
+  ([#^String input-string] (nearby input-string (cons "" "etaoinshrdlcumwfgypbvkjxqz")))
+  ([#^String input-string replacement-seq]
+     (apply concat (swap-letters input-string)
+	    (map #(try-letter % input-string) replacement-seq))))
+
 
 ;;; Escapees
 
