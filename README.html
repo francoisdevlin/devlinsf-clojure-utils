@@ -30,13 +30,17 @@
 		padding:5px;
 		margin:0px;
 	}
+	.ns{
+		color:green;
+		font-weight:bold;
+	}
 	</style>
 </head>
 <body>
 	<div id="page-content">
 		<h1 style="text-align:center">My Proposed changes to str-utils </h1>
 		<h4 style="text-align:center">Sean Devlin</h4>
-		<h4 style="text-align:center">March 23, 2009</h4>
+		<h4 style="text-align:center">May 13, 2009</h4>
 		<p>
 			I've been reviewing the str-utils package, and I'd like to propose a few changes to the library.  I've included the code at the bottom.
 		</p>
@@ -53,18 +57,18 @@
 			</code>
 		</div>
 		<p>
-			repeatedly.  The two most interesting classes are <code>java.util.regex.Pattern</code>, and <code>clojure.lang.PersistentList</code>.  I deliberately decided to <b>not</b>
+			repeatedly.  The two most interesting classes are <code class="ns">java.util.regex.Pattern</code>, and <code class="ns">clojure.lang.PersistentList</code>.  I deliberately decided to <b>not</b>
 			use sequences, because I believed order was important.  One method takes a map as an input, but this is so that a tuple could be passed as an options
 			hash.
 		</p>
 
-		<h3><code>re-partion[input-string & remaining-inputs](...)</code></h3>
+		<h2><code>re-partion[input-string & remaining-inputs](...)</code></h2>
 		<div class="function-description">
 			This methods behaves like the original re-partition method, with the remaining-inputs being able to a list or a pattern.  It returns a lazy sequence, and
 			is used as a basis for for several other methods.
 		</div>
 
-		<h3><code>re-split[input-string & remaining-inputs](...)</code></h3>
+		<h2><code>re-split[input-string & remaining-inputs](...)</code></h2>
 		<div class="function-description">
 			The remaining inputs can be dispatched based on a regex pattern, a list of patterns, or a map.  The regex method is the basis, and does the actual work.<br>
 
@@ -113,7 +117,7 @@
 			In my opinion, the <code>:marshal-fn</code> is best used at the end of the list.  However, it could be used earlier in the list, but a exception will most likely be thrown.
 		</div>
 
-		<h3><code>re-gsub[input-string & remaining-inputs](...)</code></h3>
+		<h2><code>re-gsub[input-string & remaining-inputs](...)</code></h2>
 		<div class="function-description">
 
 			This method can take a list or two atoms as the remaining inputs.<br>
@@ -133,7 +137,7 @@
 
 		</div>
 
-		<h3><code>re-sub[input-string & remaining-inputs](...)</code></h3>
+		<h2><code>re-sub[input-string & remaining-inputs](...)</code></h2>
 		<div class="function-description">
 
 			Again, this method can take a list or two atoms as the remaining inputs.<br>
@@ -198,37 +202,103 @@
 			
 		</p>
 
-		<h2>New Parsing Helpers</h2>
+		<h2>String Seq Utils</h2>
 		<div class="function-description">
-			I've created four methods, <code>str-before, str-before-inc, str-after, str-after-inc</code>.  They are designed to help strip off parts of string before a regex.<br>
+			The contrib version of str-utils contains the <code>str-join</code> function.  This is a string specific version of the more general <cod>interpose</code> function.  It inspired the creation of 
+			four other functions, <code>str-take, str-drop, str-rest & str-reverse</code>.  The mimic the behavior of the regular sequence operations, with the exception that they return strings instead of
+			a sequence.  Also, some of them can alternately take a regex as an input.<br>
 
+			<h2><code>str-take</code></h2>
+			<p>
+				This function is designed to be similar to the <code>take</code> function from the core.  It specifically applies the <code>str</code> function to the resulting sequence.  Also, it can take a regex
+				instead of an integer, and will take everything before the regex.  Be careful not to combine a regex and a sequence, as this will cause an error.  Finally, an optional <code>:include</code> parameter
+				can be passed to include the matched regex.
+			</p>
 			<div class="code-block">	
 				<code>
 					<table>
 						<tr>
-							<td>(str-before "Clojure Is Awesome" #"\s")</td>
+							<td>(str-take 7 "Clojure Is Awesome")</td>
 							<td>=></td>
 							<td>"Clojure"</td>
 						</tr>
 						<tr>
-							<td>(str-before-inc "Clojure Is Awesome" #"\s")</td>
+							<td>(str-take 2 ["Clojure" "Is" "Awesome"])</td>
+							<td>=></td>
+							<td>"ClojureIs"</td>
+						</tr>
+						<tr>
+							<td>(str-take #"\s+" "Clojure Is Awesome")</td>
+							<td>=></td>
+							<td>"Clojure"</td>
+						</tr>
+						<tr>
+							<td>(str-take #"\s+" "Clojure Is Awesome" <br>&nbsp&nbsp {:include true})</td>
 							<td>=></td>
 							<td>"Clojure "</td>
 						</tr>
 						<tr>
-							<td>(str-after "Clojure Is Awesome" #"\s")</td>
+							<td>(str-take #"\s+" ["Clojure" "Is" "Awesome"])</td>
+							<td>=></td>
+							<td style="color:red;"><b>error</b></td>
+						</tr>
+					</table>
+				</code>
+			</div>
+
+			<h2><code>str-drop</code></h2>
+			<p>
+				This function is designed to be similar to the <code>drop</code> function from the core.  It specifically applies the <code>str</code> function to the resulting sequence.  Also, it can take a regex
+				instead of an integer, and will take everything after the regex.  Be careful not to combine a regex and a sequence, as this will cause an error.  Finally, an optional <code>:include</code> parameter
+				can be passed to include the matched regex.
+			</p>
+			
+			<div class="code-block">	
+				<code>
+					<table>
+						<tr>
+							<td>(str-drop 8 "Clojure Is Awesome")</td>
 							<td>=></td>
 							<td>"Is Awesome"</td>
 						</tr>
 						<tr>
-							<td>(str-after-inc "Clojure Is Awesome" #"\s")</td>
+							<td>(str-drop 1 ["Clojure" "Is" "Awesome"])</td>
+							<td>=></td>
+							<td>"IsAwesome"</td>
+						</tr>
+						<tr>
+							<td>(str-drop #"\s+" "Clojure Is Awesome")</td>
+							<td>=></td>
+							<td>"Is Awesome"</td>
+						</tr>
+						<tr>
+							<td>(str-drop #"\s+" "Clojure Is Awesome" <br>&nbsp&nbsp {:include true})</td>
 							<td>=></td>
 							<td>" Is Awesome"</td>
+						</tr>
+						<tr>
+							<td>(str-drop #"\s+" ["Clojure" "Is" "Awesome"])</td>
+							<td>=></td>
+							<td style="color:red;"><b>error</b></td>
 						</tr>						
 					</table>
 				</code>
 			</div>
-			
+
+			<h2><code>str-rest</code></h2>
+			<p>This function applies <code>str</code> to the <code>rest</code> of the input.  It is equivalent to <code>(str-drop 1 <i>input</i>)</code></p>
+			<div class="code-block">	
+				<code>
+					<table>
+						<tr>
+							<td>(str-rest (str :Clojure))</td>
+							<td>=></td>
+							<td>"Clojure"</td>
+						</tr>
+					</table>
+				</code>
+			</div>
+
 			<!--
 			<table>
 				<tr>
@@ -238,12 +308,24 @@
 				</tr>
 			</table> -->
 
-			These methods can be used to help parse strings<br>
+			<h2><code>str-reverse</code></h2>
+			<div class="brief-function-description">
+				This methods reverses a string<br>
+				<div class="code-block">
+					<code>
+						(str-reverse "Clojure") => "erujolC"
+					</code>
+				</div>
+			</div>
+
+			<h3>An Example</h3>
+			These methods can be used to help parse strings, such as below.<br>
 			<div class="code-block">
 				<code>
-					(str-before (str-after "&lt h4 ... &gt" #"&lth4") "&gt") <br>=> ;the stuff in the middle
+					(str-take "&gt" (str-drop  #"&lt h4" "&lt h4 ... &gt")) <br>=> ;the stuff in the middle
 				</code>
 			</div>
+
 		</div>
 
 		<h2>
@@ -251,15 +333,6 @@
 		</h2>
 		I've added a few inflectors that I am familiar with from Rails.  My apologies if their origin is anther language.  I'd be interested in knowing where the method originated
 
-		<h4>str-reverse</h4>
-		<div class="brief-function-description">
-			This methods reverses a string<br>
-			<div class="code-block">
-				<code>
-					(str-reverse "Clojure") => "erujolC"
-				</code>
-			</div>
-		</div>
 
 		<h4>trim</h4>
 		<div class="brief-function-description">
@@ -409,7 +482,7 @@
 						<tr>
 							<td>(singularize "beaches")</td>
 							<td>=></td>
-							<td>("beach")</td>
+							<td>"beach"</td>
 						</tr>
 						<tr>
 							<td>(singularize "babies")</td>
@@ -428,7 +501,7 @@
 
 		<h2>Closing thoughts</h2>
 		<p>
-			There are three more methods, str-join, chop, and chomp that were already in str-utils.  I change the implementation of the methods, but the behavior should be the same.			
+			There are three more methods, <code>str-join, chop, & chomp</code> that were already in str-utils.  I changed the implementation of the methods, but the behavior should be the same.			
 		</p>
 		<p>
 			There is a big catch with my proposed change.  The signature of re-split, re-partition, re-gsub and re-sub changes.  They will not be backwards compatible, and will break code.  However, I think the flexibility is worth it.

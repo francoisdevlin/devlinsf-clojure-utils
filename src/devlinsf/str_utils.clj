@@ -4,11 +4,6 @@
 
 ;;; String Merging & Slicing
 
-(defn str-join
-  "Returns a string of all elements in 'sequence', separated by
-  'separator'.  Like Perl's 'join'."
-  [separator sequence]
-  (apply str (interpose separator sequence)))
 
 (defmulti re-partition (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
 
@@ -131,6 +126,40 @@
       (re-sub (re-sub input-string (reverse remaining)) (first pair) (second pair)))))
 
 ;;; Parsing Helpers
+(defmulti str-take (fn[parameter & remaining] (class parameter)))
+
+(defmethod str-take java.util.regex.Pattern
+  ([parameter input-string]
+    (str-take parameter input-string {}))
+  ([parameter input-string options-map]
+     (let [matches (re-partition input-string parameter)]
+       (if (options-map :include)
+	 (apply str (take 2 matches))
+	 (first matches)))))
+
+(defmethod str-take :default
+  [parameter input-string]
+  (apply str (take parameter input-string)))
+
+(defn str-rest
+  [#^String input-string]
+  (apply str (rest input-string)))
+
+(defmulti str-drop (fn[parameter & remaining] (class parameter)))
+
+(defmethod str-drop java.util.regex.Pattern
+  ([parameter input-string]
+    (str-drop parameter input-string {}))
+  ([parameter input-string options-map]
+     (let [matches (re-partition input-string parameter)]
+       (if (options-map :include)
+	 (apply str (rest matches))
+	 (apply str (drop 2 matches))))))
+
+(defmethod str-drop :default
+  [parameter input-string]
+  (apply str (drop parameter input-string)))
+
 (defn str-before [#^String input-string #^java.util.regex.Pattern regex]
   (let [matches (re-partition input-string regex)]
     (first matches)))
@@ -147,14 +176,19 @@
   (let [matches (re-partition input-string regex)]
     (apply str (rest matches))))
 
-
-;;; Inflectors
-;;; These methods only take the input string.
 (defn str-reverse
   "This method excepts a string and returns the reversed string as a results"
   [#^String input-string]
   (apply str (reverse input-string)))
-  
+
+(defn str-join
+  "Returns a string of all elements in 'sequence', separated by
+  'separator'.  Like Perl's 'join'."
+  [separator sequence]
+  (apply str (interpose separator sequence)))
+
+;;; Inflectors
+;;; These methods only take the input string.
 (defn upcase 
   "Converts the entire string to upper case"
   [#^String input-string]
@@ -178,12 +212,12 @@
 (defn ltrim
   "This method chops all of the leading whitespace."
   [#^String input-string]
-  (str-after input-string #"\s+"))
+  (str-drop #"\s+" input-string))
 
 (defn rtrim
   "This method chops all of the trailing whitespace."
   [#^String input-string]
-  (str-reverse (str-after (str-reverse input-string) #"\s+")))
+  (str-reverse (str-drop #"\s+" (str-reverse input-string))))
 
 (defn chop
   "Removes the last character of string."
@@ -194,14 +228,14 @@
   "Removes all trailing newline \\n or return \\r characters from
   string.  Note: String.trim() is similar and faster."
   [#^String input-string]
-  (str-before input-string #"[\r\n]+"))
+  (str-take #"[\r\n]+" input-string))
 
 (defn capitalize
   "This method turns a string into a capitalized version, Xxxx"
   [#^String input-string]
   (str-join "" (list 
 		(upcase (str (first input-string)))
-		(downcase (apply str (rest input-string))))))
+		(downcase (str-rest input-string)))))
 
 (defn titleize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is capitalized, and the result is joined with \" \"."

@@ -1,8 +1,8 @@
 This is a proposed change for str-utils.  There are a few key changes, which can be summarized as follows.
 
-* The re-* methods can now take a list of regular expressions, and each is applied recursively.
+* The re-* methods can now take a list of regexes, and each is applied recursively.
 * Several utility methods have been added to simply common string manipulations.
-* before & after methods have been created, which simplify parsing.
+* str-before & str-after methods have been created, which simplify splitting once on a regex.
 * re-split is written in terms of re-partition.  The result is re-split is now lazy.
 
 === Installation ===

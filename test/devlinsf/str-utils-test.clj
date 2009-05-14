@@ -35,40 +35,48 @@
   (is (= (capitalize "clojure") "Clojure")))
 
 (deftest test-titleize
-  (let [expected-string "Clojure Is Awesome"]
-    (is (= (titleize "clojure is awesome") expected-string))
-    (is (= (titleize "clojure   is  awesome") expected-string))
-    (is (= (titleize "CLOJURE IS AWESOME") expected-string))
-    (is (= (titleize "clojure-is-awesome") expected-string))
-    (is (= (titleize "clojure- _ is---awesome") expected-string))
-    (is (= (titleize "clojure_is_awesome") expected-string))))
+  (are
+   (let [expected-string "Clojure Is Awesome"]
+     (= (titleize _1) expected-string))
+   "clojure is awesome"
+   "clojure   is  awesome"
+   "CLOJURE IS AWESOME"
+   "clojure-is-awesome"
+   "clojure- _ is---awesome"
+   "clojure_is_awesome"))
 
 (deftest test-camelize
-  (let [expected-string "clojureIsAwesome"]
-    (is (= (camelize "clojure is awesome") expected-string))
-    (is (= (camelize "clojure   is  awesome") expected-string))
-    (is (= (camelize "CLOJURE IS AWESOME") expected-string))
-    (is (= (camelize "clojure-is-awesome") expected-string))
-    (is (= (camelize "clojure- _ is---awesome") expected-string))
-    (is (= (camelize "clojure_is_awesome") expected-string))))
+  (are
+   (let [expected-string "clojureIsAwesome"]
+     (= (camelize _1) expected-string))
+   "clojure is awesome"
+   "clojure   is  awesome"
+   "CLOJURE IS AWESOME"
+   "clojure-is-awesome"
+   "clojure- _ is---awesome"
+   "clojure_is_awesome"))
 
 (deftest test-underscore
-  (let [expected-string "clojure_is_awesome"]
-    (is (= (underscore "clojure is awesome") expected-string))
-    (is (= (underscore "clojure   is  awesome") expected-string))
-    (is (= (underscore "CLOJURE IS AWESOME") expected-string))
-    (is (= (underscore "clojure-is-awesome") expected-string))
-    (is (= (underscore "clojure- _ is---awesome") expected-string))
-    (is (= (underscore "clojure_is_awesome") expected-string))))
+  (are
+   (let [expected-string "clojure_is_awesome"]
+     (= (underscore _1) expected-string))
+   "clojure is awesome"
+   "clojure   is  awesome"
+   "CLOJURE IS AWESOME"
+   "clojure-is-awesome"
+   "clojure- _ is---awesome"
+   "clojure_is_awesome"))
 
 (deftest test-dasherize
-  (let [expected-string "clojure-is-awesome"]
-    (is (= (dasherize "clojure is awesome") expected-string))
-    (is (= (dasherize "clojure   is  awesome") expected-string))
-    (is (= (dasherize "CLOJURE IS AWESOME") expected-string))
-    (is (= (dasherize "clojure-is-awesome") expected-string))
-    (is (= (dasherize "clojure- _ is---awesome") expected-string))
-    (is (= (dasherize "clojure_is_awesome") expected-string))))
+  (are
+   (let [expected-string "clojure-is-awesome"]
+     (= (dasherize _1) expected-string))
+   "clojure is awesome"
+   "clojure   is  awesome"
+   "CLOJURE IS AWESOME"
+   "clojure-is-awesome"
+   "clojure- _ is---awesome"
+   "clojure_is_awesome"))
 
 (deftest test-str-before
   (is (= (str-before "Clojure Is Awesome" #"Is") "Clojure ")))
@@ -135,7 +143,7 @@
   (let [source-string "1\t2\t3\n4\t5\t6"]
     (is (= (re-gsub source-string #"\s+" " ") "1 2 3 4 5 6"))
     (is (= (re-gsub source-string '((#"\s+" " "))) "1 2 3 4 5 6"))
-    (is (= (re-gsub source-string '((#"\s+" " ") (#"\d" "D"))) "D D D D D D")))
+    (is (= (re-gsub source-string '((#"\s+" " ") (#"\d" "D"))) "D D D D D D"))))
     
 (deftest test-re-sub
   (let [source-string "1 2 3 4 5 6"]
@@ -162,11 +170,47 @@
     "stop" "stops"))
 
 ;;;The code for the test-pluralize function was based on functions contributed by Brian Doyle 
-(deftest test-pluralize (are (= _1 (pluralize _2))
-    "foos" "foo"
-    "beaches" "beach"
-    "babies" "baby"
-    "boxes" "box"
-    "bushes" "bush"
-    "buses" "bus"
-    "stops" "stop"))
+(deftest test-pluralize 
+  (are (= _1 (pluralize _2))
+       "foos" "foo"
+       "beaches" "beach"
+       "babies" "baby"
+       "boxes" "box"
+       "bushes" "bush"
+       "buses" "bus"
+       "stops" "stop"))
+
+(deftest test-str-rest 
+  (are (= _1 (str-rest _2))
+       "beer" (str :beer)
+       "eer" "Beer"
+       "" "B"
+       "" ""
+       "" '()))
+
+(deftest test-str-take
+  (let [source-string "Be er"]
+    (are 
+     (= (str-take _1 source-string) _2)
+     2 "Be"
+     10 "Be er"
+     #"\r" "Be er"
+     #"\s+" "Be")
+    (is (= (str-take #"\s+" source-string {:include true}) "Be "))
+    (is (= (str-take #"\s+" source-string {:include false}) "Be"))
+    (is (= (str-take 2 ["B" "e" "e" "r"]) "Be"))
+    (is (= (str-take 2 ["B" "ee" "r"]) "Bee"))
+    (is (= (str-take 2 []) ""))))
+
+(deftest test-str-drop
+  (let [source-string "Be er"]
+    (are (= (str-drop _1 source-string) _2)
+	 2 " er"
+	 10 ""
+	 #"\r" ""
+	 #"\s+" "er")
+    (is (= (str-drop #"\s+" source-string {:include true}) " er"))
+    (is (= (str-drop #"\s+" source-string {:include false}) "er"))
+    (is (= (str-drop 2 ["B" "e" "e" "r"]) "er"))
+    (is (= (str-drop 2 ["B" "ee" "r"]) "r"))
+    (is (= (str-drop 2 []) ""))))
