@@ -64,7 +64,8 @@
         <path location="${clojure.jar}"/>
       </classpath>
       <sysproperty key="clojure.compile.path" value="${build}"/>
-      <arg value="devlinsf.str-utils"/>
+      <arg value="lib.devlinsf.str-utils"/>
+      <arg value="lib.devlinsf.map-utils"/>
     </java>
   </target>
 
