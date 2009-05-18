@@ -66,6 +66,7 @@
       <sysproperty key="clojure.compile.path" value="${build}"/>
       <arg value="lib.devlinsf.str-utils"/>
       <arg value="lib.devlinsf.map-utils"/>
+      <arg value="lib.devlinsf.sql-utils"/>
     </java>
   </target>
 
