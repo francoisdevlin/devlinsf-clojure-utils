@@ -35,11 +35,11 @@ Assume "Clojure is Awesome" is on the clipboard
 
 * Use the get-clip function to return the data as a string.
 
-  user=>(get-clip)
-  "Clojure is Awesome"
+  	user=>(get-clip)
+  	"Clojure is Awesome"
 
-  user=>(count (get-clip))
-  18
+  	user=>(count (get-clip))
+  	18
 
 * Use the set-clip! function to paste a string to the clipboard.
 
@@ -53,23 +53,23 @@ Assume the following is in the clipboard
 
 * Use the read-clip function to return the clipboard data as an S-exp (if applicable).
 
-  user=>(read-clip)
-  (+ 2 2)
+  	user=>(read-clip)
+  	(+ 2 2)
 
-  user=>(count (read-clip))
-  3
+  	user=>(count (read-clip))
+  	3
 
 * Use the eval-clip function to evaluate the S-exp in the clipboard (if applicable).
 
-  user=>(eval-clip)
-  4
+  	user=>(eval-clip)
+  	4
 
 ### Storing Clippings 
 
 * Use the defclip macro to store the clipping in a variable.
 
-  user=>(defclip a-symbol)
-  ;a-symbol now stores the contents of the clipboard.  Great for REPL hacking.
+  	user=>(defclip a-symbol)
+  	;a-symbol now stores the contents of the clipboard.  Great for REPL hacking.
 
 
 ## Installation
