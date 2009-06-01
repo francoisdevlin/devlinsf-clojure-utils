@@ -1,10 +1,10 @@
-==My Utilities Library==
+# My Utilities Library 
 This is a collection of small utility routines I use in my code.  I put it up here in case anyone else finds it useful. Currently it includes:
 
-*String Utilities
-*Clipboard Utilities
+* String Utilities
+* Clipboard Utilities
 
-== String Utilities ==
+# String Utilities 
 
 Namespace: lib.devlinsf.str-utils
 
@@ -15,7 +15,7 @@ This is a proposed change for str-utils.  There are a few key changes, which can
 * str-take & str-drop methods have been created, which simplify substring operations and splitting once on a regex.
 * re-split is written in terms of re-partition.  The result is re-split is now lazy.
 
-=== String Usage ===
+## String Usage 
 Usage is documented in the README.html file.
 
 == Clipboard Utilities ==
