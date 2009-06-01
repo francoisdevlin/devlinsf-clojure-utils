@@ -3,12 +3,26 @@
 	lib.devlinsf.map-utils
 	clojure.contrib.sql))
 
+;;Connection Util
+(defn connection-map
+  [input-map]
+  (let [con-map (dissoc input-map :db-host :db-port :db-name :db-vendor)
+	drivers {:mysql {:classname "com.mysql.jdbc.Driver"
+			 :subprotocol "mysql"}}]
+    (merge con-map 
+	   (hash-map 
+	    :subname (str "//" (input-map :db-host)
+			  ":"  (input-map :db-port)
+			  "/"  (input-map :db-name)))
+	   (drivers (input-map :db-vendor)))))
+
+;;Query Utils
 (defmulti sqlize-table class)
 (defmulti sqlize-column class)
 (defmulti clause-detect class)
 
 (defn where-clause[where-map]
-  (str-join " AND "    
+  (str-join " AND "
     (map #(str
             (sqlize-table (first %))
             (clause-detect (second %))
@@ -25,11 +39,11 @@
 (defmethod sqlize-table String [table-name]
   table-name)
 (defmethod sqlize-table clojure.lang.Keyword [table-name]
-  (apply str (rest (str table-name))))
+  (str-rest (str table-name)))
 
 (defn get-tuples
   [db table where-map]
-  (with-connection pn-db
+  (with-connection db
     (with-query-results rs
       [(sql-select-str table where-map)]
       (loop [output ()
@@ -52,3 +66,35 @@
     "=")
 (defmethod clause-detect ::in-clause [val]
   " IN ")
+
+(defmacro insert-entry-rails
+  "A macro for inserting Rails"
+  [table,value-map]
+  (list 
+   'clojure.contrib.sql/insert-values
+   table
+   (vec (concat '(:created_at :updated_at) (keys value-map)))
+   (vec (concat (list 
+		 (java.sql.Timestamp. (. (java.util.Date. ) getTime ))
+		 (java.sql.Timestamp. (. (java.util.Date. ) getTime )))
+		(map #(value-map %) (keys value-map))))))
+
+;;;DDL Utils
+(defn create-table-standard
+  "Create a table to store blog entries"
+  [table-name fields]
+  (clojure.contrib.sql/create-table
+   table-name
+   [:id :integer "PRIMARY KEY" "AUTO_INCREMENT"]
+   'fields))
+
+(defmacro create-table-rails
+  "A macro for creating Rails style tables"
+  [table-name & fields]
+  (concat `(
+   clojure.contrib.sql/create-table
+   ~table-name
+   [:id :integer "PRIMARY KEY" "AUTO_INCREMENT"]
+   [:created_at :datetime]
+   [:updated_at :datetime])
+   fields))

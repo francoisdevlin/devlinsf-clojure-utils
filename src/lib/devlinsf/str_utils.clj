@@ -343,3 +343,12 @@ english speakers."
     (re-gsub input-string escaped-charecters)))
 
 ;(defn pdf-escape[x])
+
+;;;Parsers
+(defn parse-double
+  [input-string]
+  (java.lang.Double/parseDouble input-string))
+
+(defn parse-int
+  [input-string]
+  (java.lang.Integer/parseInt input-string))
