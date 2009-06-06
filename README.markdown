@@ -75,6 +75,7 @@ Assume the following is in the clipboard
 * Use the defclip macro to store the clipping in a variable.
 
   	user=>(defclip a-symbol)
+
   	;a-symbol now stores the contents of the clipboard.  Great for REPL hacking.
 
 

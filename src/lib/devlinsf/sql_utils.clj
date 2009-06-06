@@ -98,3 +98,15 @@
    [:created_at :datetime]
    [:updated_at :datetime])
    fields))
+
+(defmacro table-model
+  [db-con table-name]
+  (let [base-name (keywordize table-name)
+        finder-symbol (symbol (str base-name "?"))
+        insert-symbol (symbol (str base-name "+"))
+        delete-symbol (symbol (str base-name "-"))
+        update-symbol (symbol (str base-name "!"))
+        cond-symbol (gensym "cond-map_")]
+    `(defn ~finder-symbol
+       [~cond-symbol]
+       (get-tuples ~db-con ~table-name ~cond-symbol))))
