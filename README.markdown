@@ -25,7 +25,7 @@ This is designed to support ad-hoc data processing and spreadsheet wrangling.  A
 
 Currently only moving text objects between applications is supported.  There a few known quirks with set-clip! in OS X.  Seems to work fine on XP.  Have not tested Vista or any variants of Linux.
 
-## Usage is documented in the [docs/clip-utils.markdown] file.
+## Usage is documented in the docs/clip-utils.markdown file.
 
 #SQL Utilies
 
