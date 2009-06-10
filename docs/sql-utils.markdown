@@ -53,7 +53,7 @@ Substituting into our SQL builder above yeilds
 
     "select * from FOO where id=1"
 
-The map can also have string keys
+Got it?  Good. The map can also have string keys.
 
     (where-clause {"id" 1}) => "id=1"
 
@@ -69,7 +69,7 @@ I have found the following statements to be true for 99% of my queries.
 
 	`Find a record with (city='Philadelphia' OR city='Washington DC') AND job='software nerd'`
 
-* IN is functional equivalent to OR in this case.
+* IN is functionally equivalent to OR in this case.
 
 As such, I've decided to implement AND & IN, but not OR.  Like I said, this covers 99% of what I do.  I'll gladly look at any reasonable patches to add OR functionality.
 
