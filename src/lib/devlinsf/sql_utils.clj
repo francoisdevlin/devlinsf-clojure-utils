@@ -32,8 +32,8 @@
 (defn sql-select-str[table-name,where-map]
   (str "SELECT * FROM "
     (sqlize-table table-name)
-    " WHERE "
-    (where-clause where-map)))
+    (if where-map
+      (str " WHERE " (where-clause where-map)))))
 
 
 (defmethod sqlize-table String [table-name]
@@ -92,12 +92,12 @@
   "A macro for creating Rails style tables"
   [table-name & fields]
   (concat `(
-   clojure.contrib.sql/create-table
-   ~table-name
-   [:id :integer "PRIMARY KEY" "AUTO_INCREMENT"]
-   [:created_at :datetime]
-   [:updated_at :datetime])
-   fields))
+	    clojure.contrib.sql/create-table
+	    ~table-name
+	    [:id :integer "PRIMARY KEY" "AUTO_INCREMENT"]
+	    [:created_at :datetime]
+	    [:updated_at :datetime])
+	  fields))
 
 (defmacro table-model
   [db-con table-name]
@@ -105,8 +105,42 @@
         finder-symbol (symbol (str base-name "?"))
         insert-symbol (symbol (str base-name "+"))
         delete-symbol (symbol (str base-name "-"))
+        kill-symbol (symbol (str base-name "-kill"))
         update-symbol (symbol (str base-name "!"))
-        cond-symbol (gensym "cond-map_")]
-    `(defn ~finder-symbol
-       [~cond-symbol]
-       (get-tuples ~db-con ~table-name ~cond-symbol))))
+        meta-symbol (symbol (str base-name "-meta"))
+        cond-symbol (gensym "cond-map_")
+        attr-symbol (gensym "attr-map_")
+	kill-params-symbol (gensym "kill-params_")]
+    `(do
+       (defn ~finder-symbol
+	 ([] (~finder-symbol nil))
+	 ([~cond-symbol]
+	    (get-tuples ~db-con ~table-name ~cond-symbol)))
+       (defn ~update-symbol
+	 [~cond-symbol ~attr-symbol]
+	 (clojure.contrib.sql/with-connection 
+	  ~db-con
+	   (clojure.contrib.sql/transaction
+	    (clojure.contrib.sql/update-values
+	     ~(keyword table-name)
+	     [(where-clause ~cond-symbol)]
+	     ~attr-symbol))))
+       (defn ~delete-symbol
+	 [~cond-symbol]
+	 (clojure.contrib.sql/with-connection
+	  ~db-con
+	  (clojure.contrib.sql/transaction
+	   (clojure.contrib.sql/delete-rows
+	    ~(keyword table-name)
+	    [(where-clause ~cond-symbol)]))))
+       (defn ~kill-symbol
+	 ~(str "This function will delete the " table-name " table.  Pass the keyword :yes to activate the function.")
+	 ([] (~kill-symbol nil))
+	 ([~kill-params-symbol]
+	    (if (= ~kill-params-symbol :yes)
+	      (clojure.contrib.sql/with-connection
+	       ~db-con
+	       (clojure.contrib.sql/transaction
+		(clojure.contrib.sql/do-commands
+		 ~(str "DROP TABLE " table-name))))
+	      "Table not deleted.  Pass the keyword :yes to execute the command."))))))
