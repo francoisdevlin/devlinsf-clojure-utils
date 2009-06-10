@@ -57,15 +57,33 @@ The map can also have string keys
 
     (where-clause {"id" 1}) => "id=1"
 
+## AND, OR & IN
+
+I have found the following statements to be true for 99% of my queries.
+
+* AND is used to restrict multiple columns.  
+
+	`Find a record with city='Philadelphia' AND job='software nerd'`
+	
+* OR is used to span multiple values in the same column.  
+
+	`Find a record with (city='Philadelphia' OR city='Washington DC') AND job='software nerd'`
+
+* IN is functional equivalent to OR in this case.
+
+As such, I've decided to implement AND & IN, but not OR.  Like I said, this covers 99% of what I do.  I'll gladly look at any reasonable patches to add OR functionality.
+
+### AND
+
 Mutliple keys are expanded with AND.  I have found AND to be much more useful than OR when querying on multiple columns.
 
 	(where-clause {:id 1 :name "Sean"}) => "id=1 AND name=\"Sean\""
-	
-However, suppose we want to know everyone named "Sean" or "Bill".  This can be done simply by placing and array in the conditions map
 
-	(where-clause {:name ["Sean" "Bill"}) => "name IN (\"Sean\", \"Bill\")"
+### IN
 	
-Notice how the array is expanded to an IN statement.  This is a more concise way of using OR for multiple values in the same column (which is my main use for OR).
+Suppose we want to know everyone named "Sean" or "Bill".  This can be done simply by placing and array in the conditions map
+
+	(where-clause {:name ["Sean" "Bill"]}) => "name IN (\"Sean\", \"Bill\")"	
 
 #TO DO
 
