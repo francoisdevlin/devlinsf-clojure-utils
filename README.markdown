@@ -15,8 +15,7 @@ This is a proposed change for str-utils.  There are a few key changes, which can
 * str-take & str-drop methods have been created, which simplify substring operations and splitting once on a regex.
 * re-split is written in terms of re-partition.  The result is re-split is now lazy.
 
-## String Usage 
-Usage is documented in the README.html file.
+## Usage is documented in the docs/str-utils.markdown file.
 
 # Clipboard Utilities 
 
@@ -26,59 +25,15 @@ This is designed to support ad-hoc data processing and spreadsheet wrangling.  A
 
 Currently only moving text objects between applications is supported.  There a few known quirks with set-clip! in OS X.  Seems to work fine on XP.  Have not tested Vista or any variants of Linux.
 
-## Clipboard Usage 
+## Usage is documented in the [docs/clip-utils.markdown] file.
 
-Here's a quick rundown of how to use the methods.
+#SQL Utilies
 
-### Cut & Paste 
-Assume "Clojure is Awesome" is on the clipboard
+Namespace: lib.devlinsf.sql-utils
 
-* Use the get-clip function to return the data as a string.
+This is designed to wrap common sql utilities.  I current don't use much of it directly.  The macros in `lib.devlinsf.model-utilities` are preferred instead.  It is worth
+knowing how to use `connection-map` and `where-clause` functions.
 
-  	user=>(get-clip)
-
-  	"Clojure is Awesome"
-
-  	user=>(count (get-clip))
-
-  	18
-
-* Use the set-clip! function to paste a string to the clipboard.
-
-	user=>(set-clip! "Clojure is Great")
-
-	;"Clojure is Great" is now on the clipboard
-
-### Cut & Paste S-exps
-Assume the following is in the clipboard
-
-  (+ 2 2)
-
-* Use the read-clip function to return the clipboard data as an S-exp (if applicable).
-
-  	user=>(read-clip)
-
-  	(+ 2 2)
-
-  	user=>(count (read-clip))
-
-  	3
-
-* Use the eval-clip function to evaluate the S-exp in the clipboard (if applicable).
-
-  	user=>(eval-clip)
-
-  	4
-
-### Storing Clippings 
-
-* Use the defclip macro to store the clipping in a variable.
-
-  	user=>(defclip a-symbol)
-
-  	;a-symbol now stores the contents of the clipboard.  Great for REPL hacking.
-
-
-## Installation
+# Installation
 
 After downloading, run ant in order to build the devlinsf-utils.jar file.  Then, add it to you clojure classpaths as necessary

@@ -1,16 +1,17 @@
 # Clipboard Utilities 
 
+Sean Devlin
+
+June 10, 2009
+
+
 Namespace: lib.devlinsf.clip-utils
 
 This is designed to support ad-hoc data processing and spreadsheet wrangling.  Also, it could be useful for adding custom cut and paste to your own Swing applications.
 
 Currently only moving text objects between applications is supported.  There a few known quirks with set-clip! in OS X.  Seems to work fine on XP.  Have not tested Vista or any variants of Linux.
 
-## Clipboard Usage 
-
-Here's a quick rundown of how to use the methods.
-
-### Cut & Paste 
+## Cut & Paste 
 Assume "Clojure is Awesome" is on the clipboard
 
 * Use the get-clip function to return the data as a string.
@@ -29,7 +30,7 @@ Assume "Clojure is Awesome" is on the clipboard
 
 	;"Clojure is Great" is now on the clipboard
 
-### Cut & Paste S-exps
+## Cut & Paste S-exps
 Assume the following is in the clipboard
 
   (+ 2 2)
@@ -50,7 +51,7 @@ Assume the following is in the clipboard
 
   	4
 
-### Storing Clippings 
+## Storing Clippings 
 
 * Use the defclip macro to store the clipping in a variable.
 

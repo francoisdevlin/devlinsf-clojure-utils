@@ -53,7 +53,7 @@ This method can take a list or two atoms as the remaining inputs.
 ### Two atoms
 (re-gsub "1 2 3 4 5 6" #"\s" "") => "123456"
 ### A paired list
-(re-gsub "1 2 3 4 5 6" '((#"\s" " ) (#"\d" "D"))) => "DDDDDD"
+(re-gsub "1 2 3 4 5 6" '((#"\s" "") (#"\d" "D"))) => "DDDDDD"
 
 ## re-sub\[input-string & remaining-inputs\](...)
 
