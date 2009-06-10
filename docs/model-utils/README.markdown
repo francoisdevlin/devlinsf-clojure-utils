@@ -44,13 +44,6 @@ Transforms take a hash-map in and return a map.  Think of them as decorators for
 Takes a name, an optional doc-string, and a flat list of key/value pairs.  Defines a function _name_-transform.
 
 Sample Usage:
-
-	user=> (def-transform counter "Counts the arguments in a map" :count count)
-	#'user/counter-transform
-	user=> (counter-transform {:a "A" :b "B"})
-	{:count 2, :a "A", :b "B"}
-	user=> (counter-transform {:a "A" :b "B" :count 0})
-	{:a "A", :b "B", :count 3}
 	
 	user=> (def-transform counter :count count)
 	#'user/counter-transform
