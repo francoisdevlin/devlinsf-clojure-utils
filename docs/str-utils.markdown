@@ -43,15 +43,29 @@ This splits each element based on the inputs of the map. It is how options are p
 The :pattern, :offset, and :length options are relatively straightforward. The :marshal-fn is mapped after the string is split.
 ### List
 
-This splits each element either like a map (datatype) or a regex. The map operator is applied recursively to each element
-(re-split "1 2 3\n4 5 6" (list #"\n" #"\s+")) => (("1" "2" "3") ("4" "5" "6"))
+This splits each element either like a hash-map or a regex. The map operator is applied recursively to each element
+
+	(re-split "1 2 3\n4 5 6" (list #"\n" #"\s+")) 
+	=> (("1" "2" "3") ("4" "5" "6"))
+	
+This is equivalent to
+
+	(map #(re-split % #"\s+") (re-split "1 2 3\n4 5 6" #"\n"))
+	=> (("1" "2" "3") ("4" "5" "6"))
+
 ### Chaining
 
 These items can be chained together, as the following example shows
 
     (re-split "1 2 3\n4 5 6" 
       (list #"\n" {:pattern #"\s+" :length 2 :marshal-fn parse-double}))
+    => ((1.0 2.0) (4.0 5.0))
 
+Is equivalent to:
+
+	(map 
+		#(re-split % {:pattern #"\s+" :length 2 :marshal-fn parse-double})
+		(re-split "1 2 3\n4 5 6" #"\n"))
     => ((1.0 2.0) (4.0 5.0))
  
 In my opinion, the `:marshal-fn` is best used at the end of the list. However, it could be used earlier in the list, but a exception will most likely be thrown.
@@ -63,6 +77,10 @@ This method can take a list or two atoms as the remaining inputs.
 ### A paired list
 	(re-gsub "1 2 3 4 5 6" '((#"\s" "") (#"\d" "D"))) => "DDDDDD"
 
+Note: This signature sucks.  Should be this:
+	
+	(re-gsub "1 2 3 4 5 6" #"\s" "" #"\d" "D")
+
 ## re-sub\[input-string & remaining-inputs\](...)
 
 Again, this method can take a list or two atoms as the remaining inputs.
@@ -71,6 +89,11 @@ Again, this method can take a list or two atoms as the remaining inputs.
 
 ### A paired list
 	(re-sub "1 2 3 4 5 6" '((#"\d" "D") (#"\d" "E"))) => "D E 3 4 5 6"
+
+Note: This signature sucks.  Should be this:
+
+	(re-gsub "1 2 3 4 5 6" #"\d" "D" #"\d" "E")
+
 
 #The nearby Function
 
