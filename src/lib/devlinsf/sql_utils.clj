@@ -18,8 +18,12 @@
 
 ;;Query Utils
 (defmulti sqlize-table class)
-(defmulti sqlize-column class)
-(defmulti clause-detect class)
+(defmulti sqlize-column #(if (nil? %)
+			   ::nil
+			    (class %)))
+(defmulti clause-detect #(if (nil? %)
+			   ::nil
+			    (class %)))
 
 (defn where-clause[where-map]
   (str-join " AND "
@@ -59,6 +63,8 @@
   (str "\"" val "\""))
 (defmethod sqlize-column :default [val]
     val)
+(defmethod sqlize-column ::nil [val]
+    "NULL")
 (defmethod sqlize-column ::in-clause [val]
   (str "("(str-join ", " (map sqlize-column val)) ")"))
 
@@ -66,6 +72,8 @@
     "=")
 (defmethod clause-detect ::in-clause [val]
   " IN ")
+(defmethod clause-detect ::nil [val]
+  " IS ")
 
 (defmacro insert-entry-rails
   "A macro for inserting Rails"

@@ -57,6 +57,10 @@ Got it?  Good. The map can also have string keys.
 
     (where-clause {"id" 1}) => "id=1"
 
+Also, a key with a value of nil will generate an "IS NULL" clause
+
+	(where-clause {"id" nil}) => "id IS NULL"
+
 ## AND, OR & IN
 
 I have found the following statements to be true for 99% of my queries.
@@ -87,6 +91,4 @@ Suppose we want to know everyone named "Sean" or "Bill".  This can be done simpl
 
 #TO DO
 
-* where-clause needs to "pass through" a string
-* (where-clause {:id nil}) should generate "ID IS NULL"
- 
+* where-clause needs to "pass through" a string 
