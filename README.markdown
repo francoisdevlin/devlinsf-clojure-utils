@@ -17,6 +17,16 @@ This is a proposed change for str-utils.  There are a few key changes, which can
 
 ## Usage is documented in the docs/str-utils.markdown file.
 
+#Date Utilities
+
+Namespace: lib.devlinsf.date-utils
+
+This library is designed to add a standard way to construct & wrap date objects in Clojure.  It is intended to be a very broad purpose adapter.
+
+It depends on `clojure.contrib.str-utils`
+
+## Usage is documented in the docs/date-utils.markdown file.
+
 # Clipboard Utilities 
 
 Namespace: lib.devlinsf.clip-utils
