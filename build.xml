@@ -70,6 +70,7 @@
       <arg value="lib.devlinsf.model-utils"/>
       <arg value="lib.devlinsf.clip-utils"/>
       <arg value="lib.devlinsf.date-utils"/>
+      <arg value="lib.devlinsf.predicate-utils"/>
       <arg value="lib.devlinsf.math.numerics"/>
       <arg value="lib.devlinsf.math.trig"/>
     </java>

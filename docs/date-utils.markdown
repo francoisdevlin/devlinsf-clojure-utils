@@ -4,7 +4,7 @@ Sean Devlin
 
 June 11, 2009
 
-namespace: lib.devlinsf.date-utils
+Namespace: lib.devlinsf.date-utils
 
 This library is designed to add a standard way to construct & wrap date objects in Clojure.  It is intended to be a very broad purpose adapter.
 
