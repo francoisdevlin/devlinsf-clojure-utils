@@ -6,7 +6,8 @@ June 12 2008
 
 Namespace: lib.devlinsf.predicate-utils
 
-This is a namespace to assist with predicate creation and composition in clojure.
+This is a namespace to assist with predicate creation and composition in clojure.  The AND & OR macros are good for testing, but not filtering.
+This library attempts to fill those gaps.
 
 #(same-entries[ & params]...)
 Note - The name of this method sucks.
@@ -52,7 +53,7 @@ This function composes a list of predicates with a logical AND.  Look at the fol
 			test-map)
 	true
 
-This is primarily useful for composing predicated for filtering operations.  It is based on the every? method, so it fails fast.
+This is primarily useful for composing predicates for filtering operations.  It is based on the `every?` method, so it fails fast.
 
 #(predicate-fan [& predicates]...)	
 
@@ -61,4 +62,4 @@ This function composes a list of predicates with a logical OR.  Look at the foll
 	user=> ((predicate-fan (same-entries {:job "Software Nerd"}) (same-entries {:gender :female})) test-map)
 	true
 
-This is primarily useful for composing predicated for filtering operations.  It is based on the some method, so it succeeds fast.
+This is primarily useful for composing predicates for filtering operations.  It is based on the `some` method, so it succeeds fast.

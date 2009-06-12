@@ -3,6 +3,7 @@ This is a collection of small utility routines I use in my code.  I put it up he
 
 * String Utilities
 * Date Utilities
+* Predicate Utilities
 * Clipboard Utilities
 
 # String Utilities 
@@ -27,6 +28,15 @@ This library is designed to add a standard way to construct & wrap date objects 
 It depends on `clojure.contrib.str-utils`
 
 ## Usage is documented in the docs/date-utils.markdown file.
+
+#Predicate Utilities
+
+Namespace: lib.devlinsf.predicate-utils
+
+This is a namespace to assist with predicate creation and composition in clojure.  The AND & OR macros are good for testing, but not filtering.
+This library attempts to fill those gaps.
+
+## Usage is documented in the docs/predicate-utils.markdown file.
 
 # Clipboard Utilities 
 
