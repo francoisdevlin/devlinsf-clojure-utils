@@ -165,4 +165,4 @@ Each of these has the exact same signature as `date`.  Every use of date shown a
 	user=> (time-map "3/4/1982")
 	{:minute 57, :hour-of-day 19, :day-of-week 5, :year 1982, :month 2, :day 4, :second 44, :ms 375}
 	
-Each of these methods also drills down to the Long, so that there is no linking.  This also makes each of the methods a very versatile adapters.
+Each of these methods also drills down to the Long, so that there is no object linking.  This also makes each of the methods a very versatile adapters.
