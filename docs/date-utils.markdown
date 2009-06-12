@@ -118,23 +118,40 @@ This function returns nil if passed nil
 
 This function can also accept other time formats and return them as java.util.Date objects.  This method can take:
 
-* java.lang.Long
-* java.util.Calendar
-* java.sql.Timestamp
-* java.util.Date
+### java.lang.Long
 
-Each method "drills down" to the long value, and builds a new Date object.  This way changing the original object won't affect the new date record.
+	user=> (date (. (date :year 1970) getTime))
+	#<Date Thu Jun 11 20:36:51 EDT 1970>
+
+### java.util.Calendar
+
+	user=> (date (java.util.GregorianCalendar. ))
+	#<Date Thu Jun 11 20:38:00 EDT 2009>
+
+### java.sql.Timestamp
+
+	user=> (date 
+			(java.sql.Timestamp. 
+				(. (java.util.Date. ) getTime)))
+	#<Date Thu Jun 11 20:38:48 EDT 2009>
+	
+### java.util.Date
+
+	user=> (date (java.util.Date. ))
+	#<Date Thu Jun 11 20:39:59 EDT 2009>
+
+Each of the above functions "drills down" to the Long value, and builds a new Date object.  This way changing the original object won't affect the new date record.
 
 #The Awesome part:
 
 There are also four other methods in this library
 
-* long-time (returns java.lang.Long)
-* greg-cal (return java.util.GregorianCalendar)
-* sql-ts (returs java.sql.Timestamp)
-* time-map (returns clojure.lang.PersistentHashMap)
+	long-time 	returns java.lang.Long
+	greg-cal 	returns java.util.GregorianCalendar
+	sql-ts 		returns java.sql.Timestamp
+	time-map 	returns clojure.lang.PersistentHashMap
 
-Each of these has the exact same signature as `date`.  So, each of the following is valid:
+Each of these has the exact same signature as `date`.  Every use of date shown above will work with these methods. For example, each of the following is valid:
 
 	user=> (long-time)
 	1244764606423
@@ -148,4 +165,4 @@ Each of these has the exact same signature as `date`.  So, each of the following
 	user=> (time-map "3/4/1982")
 	{:minute 57, :hour-of-day 19, :day-of-week 5, :year 1982, :month 2, :day 4, :second 44, :ms 375}
 	
-Each of these methods also drills down to the long, so that there is no linking.
+Each of these methods also drills down to the Long, so that there is no linking.  This also makes each of the methods a very versatile adapters.
