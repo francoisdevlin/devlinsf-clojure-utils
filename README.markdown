@@ -2,6 +2,7 @@
 This is a collection of small utility routines I use in my code.  I put it up here in case anyone else finds it useful. Currently it includes:
 
 * String Utilities
+* Date Utilities
 * Clipboard Utilities
 
 # String Utilities 
