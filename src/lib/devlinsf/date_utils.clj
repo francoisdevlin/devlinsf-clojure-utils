@@ -46,22 +46,21 @@
 	input-map)
       input-map)))
 
-(defn- create-date
-  "Can set year, month, day by keywords"
+(defn to-ms-count-dispatch
   [& params]
-  (let [time-map (month-replace  (if (map? (first params))
-				   (first params)
-				   (apply hash-map (reduce concat (partition 2 params)))))
-        greg-cal (java.util.GregorianCalendar. )]
-    (do
-      (doseq [entry time-map]
-        (let [k (first entry)
-              v (second entry)]
-            (if (field-consts k)
-                (. greg-cal set (field-consts k) v))))
-    (. greg-cal getTime))))
+  (let [lead-param (first params)]
+    (cond
+     (empty? params) ::empty
+     (nil? lead-param) ::nil
+     (instance? java.util.Calendar lead-param) ::calendar
+     (map? lead-param) ::map
+     true (class lead-param))))
 
-(defn parse-date
+(defmulti to-ms-count to-ms-count-dispatch)
+
+(defmulti parse-date-string #((second %):format))
+
+(defmethod parse-date-string :default
   [input-string & params]
   (let [default-options {:order [:month :day :year]}
 	options (if (empty? params)
@@ -72,64 +71,107 @@
 		     #(java.lang.Integer/parseInt %)
 		     (re-split #"[-/]" input-string))
 	base-map (apply hash-map (interleave (options :order) date-values))]
-    (create-date (assoc
+    (to-long (assoc
 		     base-map
 		   :month (dec (base-map :month))
 		   :year (if (< (base-map :year) 100)
 			   (+ (base-map :year) 2000)
 			   (base-map :year))))))
 
-(defn date
+ (defn parse-date
+  [input-string & params]
+  (let [default-options {:order [:month :day :year]}
+	options (if (empty? params)
+		  default-options
+		    (merge default-options
+		       (apply hash-map (reduce concat (partition 2 params)))))
+	date-values (map
+		     #(java.lang.Integer/parseInt %)
+		     (re-split #"[-/]" input-string))
+	base-map (apply hash-map (interleave (options :order) date-values))]
+    (to-long (assoc
+		     base-map
+		   :month (dec (base-map :month))
+		   :year (if (< (base-map :year) 100)
+			   (+ (base-map :year) 2000)
+			   (base-map :year))))))
+
+(defmethod to-ms-count ::empty
   [& params]
-  (let [lead-param (first params)]
-    (cond
-     (empty? params) (java.util.Date. )
-     (nil? lead-param) nil
-     (= (class lead-param) java.util.Date) (java.util.Date. (. lead-param getTime))
-     (= (class lead-param) java.lang.Long) (java.util.Date. lead-param)
-     (= (class lead-param) java.sql.Timestamp) (java.util.Date. (. lead-param getTime))
-     (= (class lead-param) java.lang.String) (apply parse-date lead-param (rest params))
-     (instance? java.util.Calendar lead-param) (java.util.Date. (. (. lead-param getTime) getTime))
-     (map? lead-param) (create-date lead-param)
-     true (apply create-date params))))
+  (to-ms-count (java.util.Date. )))
+
+(defmethod to-ms-count ::nil
+  [& params]
+  nil)
+
+(defmethod to-ms-count java.lang.Long
+  [& params]
+  (first params))
+
+(defmethod to-ms-count java.util.Date
+  [& params]
+  (. (first params) getTime))
+
+(defmethod to-ms-count ::calendar
+  [& params]
+  (to-ms-count (. (first params) getTime)))
+
+(defmethod to-ms-count ::map
+  [& params]
+  (to-ms-count (let [time-map (month-replace  (if (map? (first params))
+					    (first params)
+					    (apply hash-map (reduce concat (partition 2 params)))))
+		 greg-cal (java.util.GregorianCalendar. )]
+	     (do
+	       (doseq [entry time-map]
+		 (let [k (first entry)
+		       v (second entry)]
+		   (if (field-consts k)
+		     (. greg-cal set (field-consts k) v))))
+	       greg-cal))))
+
+(defmethod to-long :default
+  [& params]
+  (to-ms-count (apply hash-map params)))
+
+(defmethod to-ms-count java.sql.Timestamp
+  [& params]
+  (. (first params) getTime))
+
+(defmethod to-ms-count java.lang.String
+  [& params]
+  (apply parse-date (first params) (rest params)))
 
 (defn long-time
   [& params]
-  (if (= (class (first params)) java.lang.Long)
-    (first params)
-    (let [temp-date (apply date params)]
-      (if temp-date
-	(. temp-date getTime)))))
+  (apply to-ms-count params))
+
+(defn date
+  [& params]
+  (let [temp-time (apply to-ms-count params)]
+    (if temp-time
+      (java.util.Date. temp-time))))
 
 (defn greg-cal
   [& params]
-  (if (= (class (first params)) java.util.GregorianCalendar)
-    (first params)
-    (let [temp-time (apply long-time params)]
-      (if temp-time
-	(let [temp-cal (java.util.GregorianCalendar.)]
-	  (do
-	    (. temp-cal setTime (java.util.Date. temp-time))
-	    temp-cal))))))
+  (let [temp-time (apply date params)]
+    (if temp-time
+      (let [temp-cal (java.util.GregorianCalendar.)]
+	(do
+	  (. temp-cal setTime temp-time)
+	  temp-cal)))))
 
 (defn sql-ts
   [& params]
-  (if (= (class (first params)) java.sql.Timestamp)
-    (first params)  
-    (let [temp-time (apply long-time params)]
+    (let [temp-time (apply to-ms-count params)]
       (if temp-time
-	(java.sql.Timestamp. temp-time)))))
-
-(defn cal-get
-  "This is a wrapper for the java.util.Calendar get method."
-  [field & params]
-  (let [java-field (if (keyword? field)
-		     (field-consts field)
-		     field)]
-    (. (apply greg-cal params) get java-field)))
+	(java.sql.Timestamp. temp-time))))
 
 (defn time-map
   [& params]
   (let [temp-cal (apply greg-cal params)]
-    (apply merge (map #(hash-map (first %) (. temp-cal get (second %))) field-consts))))
+    (if temp-cal
+      (apply merge (map 
+		    #(hash-map (first %) (. temp-cal get (second %)))
+		    field-consts)))))
     

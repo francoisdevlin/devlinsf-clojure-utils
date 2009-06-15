@@ -14,7 +14,7 @@
   (if doc-string?
     (str "\n\n  " doc-string?)))
 
-(defn find-params
+(defn- find-params
   [& input-list]
   (if (= (class (first input-list)) java.lang.String)
 		     (rest input-list)

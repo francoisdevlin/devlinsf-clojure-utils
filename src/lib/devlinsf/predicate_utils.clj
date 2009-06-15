@@ -1,4 +1,4 @@
-(ns lib.devlinsf.predicate-utils.clj)
+(ns lib.devlinsf.predicate-utils)
 
 (defn predicate-chain
   "Mimics AND

@@ -10,6 +10,10 @@ This library is designed to add a standard way to construct & wrap date objects 
 
 It depends on `clojure.contrib.str-utils`
 
+#to-long 
+
+
+
 #date[& params]
 
 This function is designed to create a java.util.Date object.

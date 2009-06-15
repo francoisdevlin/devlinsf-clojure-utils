@@ -352,3 +352,11 @@ english speakers."
 (defn parse-int
   [input-string]
   (java.lang.Integer/parseInt input-string))
+
+(defn consanants
+  [word]
+  (count (re-gsub (downcase word) #"[aeiou]" "")))
+
+(defn vowels
+  [word]
+  (- (count word) (consanants word)))
