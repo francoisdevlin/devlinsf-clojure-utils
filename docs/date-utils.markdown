@@ -10,9 +10,12 @@ This library is designed to add a standard way to construct & wrap date objects 
 
 It depends on `clojure.contrib.str-utils`
 
-#to-long 
+#Creating a common interface.
 
+There are several time classes in Java, and they do not share a common interface. `to-ms-count` is a multimethod designed to "graft on" an interface to the time library.
 
+Every date type is a wrapper for the ms count from 1970, some are more sophisticated than others.   The `to-ms-count` recursively drills down to the long data from and datatype.
+Let's take a look at the date method for some sample usages.
 
 #date[& params]
 

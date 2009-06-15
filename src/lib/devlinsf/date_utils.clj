@@ -71,25 +71,7 @@
 		     #(java.lang.Integer/parseInt %)
 		     (re-split #"[-/]" input-string))
 	base-map (apply hash-map (interleave (options :order) date-values))]
-    (to-long (assoc
-		     base-map
-		   :month (dec (base-map :month))
-		   :year (if (< (base-map :year) 100)
-			   (+ (base-map :year) 2000)
-			   (base-map :year))))))
-
- (defn parse-date
-  [input-string & params]
-  (let [default-options {:order [:month :day :year]}
-	options (if (empty? params)
-		  default-options
-		    (merge default-options
-		       (apply hash-map (reduce concat (partition 2 params)))))
-	date-values (map
-		     #(java.lang.Integer/parseInt %)
-		     (re-split #"[-/]" input-string))
-	base-map (apply hash-map (interleave (options :order) date-values))]
-    (to-long (assoc
+    (to-ms-count (assoc
 		     base-map
 		   :month (dec (base-map :month))
 		   :year (if (< (base-map :year) 100)
@@ -130,7 +112,7 @@
 		     (. greg-cal set (field-consts k) v))))
 	       greg-cal))))
 
-(defmethod to-long :default
+(defmethod to-ms-count :default
   [& params]
   (to-ms-count (apply hash-map params)))
 
@@ -140,7 +122,7 @@
 
 (defmethod to-ms-count java.lang.String
   [& params]
-  (apply parse-date (first params) (rest params)))
+  (apply parse-date-string (first params) (rest params)))
 
 (defn long-time
   [& params]
