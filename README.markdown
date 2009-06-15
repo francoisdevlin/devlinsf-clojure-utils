@@ -3,6 +3,7 @@ This is a collection of small utility routines I use in my code.  I put it up he
 
 * String Utilities
 * Date Utilities
+* Joda-Time Utilities
 * Predicate Utilities
 * Clipboard Utilities
 
@@ -29,7 +30,7 @@ It depends on `clojure.contrib.str-utils`
 
 ## Usage is documented in the docs/date-utils.markdown file.
 
-#Joda Utilities
+#Joda-Time Utilities
 
 Namespace: lib.devlinsf.joda-utils
 
