@@ -29,6 +29,16 @@ It depends on `clojure.contrib.str-utils`
 
 ## Usage is documented in the docs/date-utils.markdown file.
 
+#Joda Utilities
+
+Namespace: lib.devlinsf.joda-utils
+
+This library is designed to wrap the Joda Time library from clojure.  It was inspired by Rich Hickey's work with sequence abstractions.
+
+It depends on `clojure.contrib.str-utils`, `lib.devlinsf.date-utils`, and the Joda-time 1.6 jar.
+
+## Usage is documented in the docs/joda-utils.markdown file.
+
 #Predicate Utilities
 
 Namespace: lib.devlinsf.predicate-utils
