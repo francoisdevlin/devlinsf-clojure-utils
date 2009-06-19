@@ -42,7 +42,7 @@
      (. (apply add-dur (datetime input-time) (first durations) (rest durations)) plus duration)))
 
 (defn sub-dur
-  "Adds a duration to the given time.  Currently assumes addition is communitive"
+  "Adds a duration to the given time.  Currently assumes subtraction is communitive"
   ([input-time duration]
      (. (datetime input-time) minus duration))
   ([input-time duration & durations]
