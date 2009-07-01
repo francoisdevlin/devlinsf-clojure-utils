@@ -65,8 +65,9 @@
 	 ((trans ~@param-list) ~input-map-symbol)))))
 
 (defn proj
+  "Takes a list of input functions to be applied to a map.  The result is a closure."
   [& params]
-  (fn [input-map] (vec (map #(input-map %) params))))
+  (fn [input-map] (vec (map #(% input-map) params))))
 
 (defmacro defproj
   [name & input-keys]
@@ -77,3 +78,59 @@
     `(do
        (defn ~proj-symbol ~doc-string? [~input-map-symbol]
 	 ((proj ~@param-list) ~input-map-symbol)))))
+
+(defn pivot
+  "This function is designed to reudce a list of tuples to a single map."
+  ([data kf vf](pivot data kf vf +))
+  ([data kf vf reduct-fn]
+    (apply merge-with reduct-fn 
+      (map #(apply hash-map ((proj kf vf) %))
+        data))))
+
+(defn freq
+  "This function returns 1 regardless of inputs."
+  [& ignored-params]
+  1)
+
+(defn test-conj 
+  [& args]
+  (if (= (count args) 1) 
+    (vector (first args))
+    (concat (first args) (rest args))))
+
+(defn test-conj 
+  [& args]
+  (println (count args)))
+
+(defn vectorize
+  [arg]
+  (if (seq? arg)
+    (vec arg)
+    (vector arg)))
+
+(defn setize
+  [arg]
+  (if (seq? arg)
+    (apply hash-set arg)
+    (hash-set arg)))
+
+(defn merge-con
+  [coll-fn]
+  (fn [& args]
+    (let [f-arg (first args)
+	  s-arg (second args)]
+      (apply conj
+	     (coll-fn f-arg)
+	     (coll-fn s-arg)))))
+
+(defn test-conj
+  [& args]
+  (let [f-arg (first args)
+	s-arg (second args)]
+    (concat (if (seq? f-arg)
+	      (f-arg)
+	      (vecotr f-arg))
+	    (if (seq? f-arg)
+	      (f-arg)
+	      (vecotr f-arg))
+	    
