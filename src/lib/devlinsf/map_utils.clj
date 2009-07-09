@@ -79,6 +79,13 @@
        (defn ~proj-symbol ~doc-string? [~input-map-symbol]
 	 ((proj ~@param-list) ~input-map-symbol)))))
 
+
+(defn cat-proj
+  "This function takes a collection of proj closures and returns a clojure that eagerly concatentates them."
+  [& proj-coll]
+  (fn [input-map] (vec (reduce concat (map #(% input-map) proj-coll)))))
+
+
 (defn pivot
   "This function is designed to reudce a list of tuples to a single map."
   ([data kf vf](pivot data kf vf +))
@@ -88,6 +95,11 @@
         data))))
 
 (defn freq
-  "This function returns 1 regardless of inputs."
+  "This function returns 1 regardless of inputs.  Very useful for determining a count with 
+  pivot tables"
   [& ignored-params]
   1)
+
+(defn map-vals
+  [f coll] 
+  (apply merge (map (fn[[k v]] { k (f v)}) coll)))

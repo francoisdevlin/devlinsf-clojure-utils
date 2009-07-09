@@ -1,7 +1,19 @@
-Here's my solution to the problem.  It's a bit long winded, so bear 
-with me (or ignore it :)) 
+#map-utils
 
-#trans
+Sean Devlin
+
+July 1, 2009
+
+Namespace: lib.devlinsf.map-utils
+
+This is a collection of map utility functions that I use when manipulating map data.  Since much of clojure is designed around manipulating a list of tuples, 
+I find these very handy.  First, we will look at transforming a map.  Then we'll take a look at project a map, followed by pivoting over a list of tuples.
+
+#Tranforming a map
+
+This section explores the `trans` closure, which is used to modify a tuple.
+
+##trans
 
 I defined a function trans 
 
@@ -22,10 +34,10 @@ key :count.
 
 Here's how I would write the incrementer: 
 
-	user=> ((trans :a #(inc (% :a))) test-map) 
+	user=> ((trans :a (comp inc :a)) test-map) 
 	{:a 1, :b "B", :c "C"} 
 
-#deftrans
+##deftrans
 
 trans is a little cumbersome, generating a closure.  I also wrote a 
 deftrans macro.  It creates a trans and stores it in the provided 
@@ -37,18 +49,18 @@ name:
 	user=> (counter test-map) 
 	{:count 3, :a 0, :b "B", :c "C"} 
 	
-	user=> (deftrans inc-a :a #(inc (% :a))) 
+	user=> (deftrans inc-a :a (comp inc :a)) 
 	#'user/inc-a 
 
 	user=> (inc-a test-map) 
 	{:a 1, :b "B", :c "C"} 
 
-#Using a closure
+##Using a closure
 	
 Let's revisit the fact that trans generates a closure.  We can use the 
 resulting transform anywhere we'd use a function. 
 
-## In a map
+### In a map
 	user=> (map (trans :count count) (repeat 5 test-map)) 
 	({:count 3, :a 0, :b "B", :c "C"} 
 	{:count 3, :a 0, :b "B", :c "C"} 
@@ -61,22 +73,24 @@ Or, we could use the def'd version
 	user=> (map counter (repeat 5 test-map)) 
 	(...) 
 
-##In a comp
+### In a comp
 	user=> ((comp inc-a counter counter) test-map) 
 	{:count 4, :a 1, :b "B", :c "C"} 
 
-##In the STM
+### In the STM
+
+This is my favorite used of trans so far
 
 	user=> (def test-ref (ref test-map)) 
 	#'user/test-ref 
 
-	user=> (dosync(alter test-ref inc-a)) 
+	user=> (dosync (alter test-ref inc-a)) 
 	{:a 1, :b "B", :c "C"} 
 
 	user=> @test-ref 
 	{:a 1, :b "B", :c "C"} 
 	
-#Extra stuff 
+##Extra stuff 
 
 I also added a feature to enable the use of decoder/lookup maps.  When 
 a map is passed instead of a function, it is assumed that the map is 
@@ -94,6 +108,9 @@ to decode the specific key it is assigned to.
 	user=> (decoder @test-ref) 
 	{:a "Not Awesome", :b "B", :c "C"} 
 	
+#Projecting a map
+
+
 That's it for now folks.  I leave it to you to consider what this is 
 good for.  Personally, I like using this to help me transform database 
 data.
