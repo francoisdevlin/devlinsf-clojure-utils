@@ -71,6 +71,7 @@
       <arg value="lib.devlinsf.model-utils"/>
       <arg value="lib.devlinsf.clip-utils"/>
       <arg value="lib.devlinsf.date-utils"/>
+      <arg value="lib.devlinsf.sort-utils"/>
       <arg value="lib.devlinsf.joda-utils"/>
       <arg value="lib.devlinsf.pred-utils"/>
       <arg value="lib.devlinsf.math.numerics"/>
