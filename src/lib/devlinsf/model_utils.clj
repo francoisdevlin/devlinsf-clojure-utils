@@ -86,9 +86,9 @@
    (sql/transaction
     (sql/insert-values
      (keyword table-name) [(keys row-map)] [(vals row-map)])
-    (with-query-results rs
-			["SELECT LAST_INSERT_ID()"]
-			((comp val first first) rs)))))
+    (sql/with-query-results rs
+			    ["SELECT LAST_INSERT_ID()"]
+			    ((comp val first first) rs)))))
 
 (defn *update*
   [db-con table-name cond-map attr-map]
@@ -97,8 +97,8 @@
    (sql/transaction
     (sql/update-values
      (keyword table-name)
-     [(where-clause cond-symbol)]
-     attr-symbol))))
+     [(where-clause cond-map)]
+     attr-map))))
 
 (defn *delete*
   [db-con table-name cond-map]
@@ -107,7 +107,7 @@
    (sql/transaction
     (sql/delete-rows
      (keyword table-name)
-     [(where-clause ~cond-symbol)]))))
+     [(where-clause cond-map)]))))
 
 (defn *drop*
   [db-con table-name kill-params-symbol]
@@ -127,6 +127,14 @@
        ([] (~finder-symbol nil))
        ([~cond-symbol]
 	  (get-tuples ~db-con ~table-name ~cond-symbol)))))
+
+(defmacro create-insert-fn
+  [db-con table-name]
+  (let [insert-symbol 'create-record
+        tuple-symbol (gensym "tuple_")]
+    `(defn ~insert-symbol
+       [~tuple-symbol]
+	  (*insert* ~db-con ~table-name ~tuple-symbol))))
 
 (defmacro create-update-fn
   [db-con table-name]
@@ -151,10 +159,10 @@
 	 ~(str "This function will DROP the " table-name " table.  Pass the keyword :yes to activate the function.")
 	 ([] (~kill-symbol nil))
 	 ([~kill-params-symbol]
-	    (*drop* ~db-con ~table-name ~kill-params))))))
+	    (*drop* ~db-con ~table-name ~kill-params-symbol))))))
 
 (defmacro defmodel
-  ([db-con table-name] (def-model db-con table-name nil))
+  ([db-con table-name] (defmodel db-con table-name nil))
   ([db-con table-name base-ns]
      (let [base-name (keywordize table-name)
 	   model-ns (if base-ns
@@ -166,5 +174,6 @@
 	  (with-ns (quote ~model-ns)
 		   (do
 		     (create-finder-fn ~qualified-db ~table-name)
+		     (create-insert-fn ~qualified-db ~table-name)
 		     (create-update-fn ~qualified-db ~table-name)
 		     (create-delete-fn ~qualified-db ~table-name)))))))
