@@ -25,15 +25,33 @@
 			   ::nil
 			    (class %)))
 
+;(defn where-entry
+;  [map-entry]
+;  (let [k (first map-entry)
+;	v (second map-entry)]
+;    (cond
+;     (and (instance? clojure.lang.Seqable v) (empty v)) nil
+;     true (str
+;	   (sqlize-table k)
+;	   (clause-detect v)
+;	   (sqlize-column v)))))
+
+(defn where-entry
+  [map-entry]
+  (let [k (first map-entry)
+	v (second map-entry)]
+    (str
+     (sqlize-table k)
+     (clause-detect v)
+     (sqlize-column v))))
+
 (defn where-clause[where-map]
   (str-join " AND "
-    (map #(str
-            (sqlize-table (first %))
-            (clause-detect (second %))
-            (sqlize-column (second %)))
-      where-map)))
+    (filter identity (map where-entry where-map))))
 
-(defn sql-select-str[table-name,where-map]
+
+(defn sql-select-str
+  [table-name where-map]
   (str "SELECT * FROM "
     (sqlize-table table-name)
     (if where-map
@@ -44,17 +62,6 @@
   table-name)
 (defmethod sqlize-table clojure.lang.Keyword [table-name]
   (str-rest (str table-name)))
-
-(defn get-tuples
-  [db table where-map]
-  (with-connection db
-    (with-query-results rs
-      [(sql-select-str table where-map)]
-      (loop [output ()
-             results rs]
-        (if (first results)
-          (recur (conj output (first results)) (rest results))
-          output)))))
 
 (derive clojure.lang.LazilyPersistentVector ::in-clause)
 (derive clojure.lang.PersistentVector ::in-clause)
@@ -75,8 +82,9 @@
 (defmethod clause-detect ::nil [val]
   " IS ")
 
+;;This is getting relocated...
 (defmacro insert-entry-rails
-  "A macro for inserting Rails"
+  "A macro for inserting Rails style entries"
   [table,value-map]
   (list 
    'clojure.contrib.sql/insert-values
@@ -86,6 +94,18 @@
 		 (java.sql.Timestamp. (. (java.util.Date. ) getTime ))
 		 (java.sql.Timestamp. (. (java.util.Date. ) getTime )))
 		(map #(value-map %) (keys value-map))))))
+
+;;This is getting relocated...
+(defn get-tuples
+  [db table where-map]
+  (with-connection db
+    (with-query-results rs
+      [(sql-select-str table where-map)]
+      (loop [output ()
+             results rs]
+        (if (first results)
+          (recur (conj output (first results)) (rest results))
+          output)))))
 
 ;;;DDL Utils
 (defn create-table-standard

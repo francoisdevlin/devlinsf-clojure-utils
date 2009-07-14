@@ -79,6 +79,17 @@
   [& input-keys]
   (fn[input-map] (vec (map #(input-map %) input-keys))))
 
+(defn *insert*
+  [db-con table-name row-map]
+  (sql/with-connection
+   db-con
+   (sql/transaction
+    (sql/insert-values
+     (keyword table-name) [(keys row-map)] [(vals row-map)])
+    (with-query-results rs
+			["SELECT LAST_INSERT_ID()"]
+			((comp val first first) rs)))))
+
 (defn *update*
   [db-con table-name cond-map attr-map]
   (sql/with-connection 
