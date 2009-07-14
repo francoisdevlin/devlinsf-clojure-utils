@@ -1,3 +1,12 @@
+#Sort-Utilities
+
+Sean Devlin 
+
+July 14, 2009
+
+Namespace: lib.devlinsf.sort-utils
+
+This namespace is designed to help sorting tuples.
 
 #Create a comparator
 
