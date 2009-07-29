@@ -109,8 +109,39 @@ to decode the specific key it is assigned to.
 	{:a "Not Awesome", :b "B", :c "C"} 
 	
 #Projecting a map
+`proj` is used to apply a list of functions to a map, and return the result as a vector.
+
+#Altering a map
+All the higher order functions in clojure accept and return a seq.  It is common to transform the resulting seq into a hash map.  These are a few functions that do this for you automatically.
+
+##map-vals
+This is like the `map` operator, but it applies `f` to every value of the hash map instead of the entry.  It returns a hash map.
+
+##map-keys
+This is like the `map` operator, but it applies `f` to every key of the hash map instead of the entry.  It returns a hash map.
+
+##filter-map
+This behaves just like `filter`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
+
+##remove-map
+This behaves just like `remove`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
+
+#Pivoting a list of tuples
+This was inspired by the pivot table feature of Excel.  It is very common to have to group, map, and reduce a list of tuples.  The pivot function is designed to handle all of the 
+skeleton code, so that the developer only has to worry about three things:
+
+1. How the data is grouped.
+2. How each tuple is mapped.
+3. How each mapping is reduced.
 
 
-That's it for now folks.  I leave it to you to consider what this is 
-good for.  Personally, I like using this to help me transform database 
-data.
+##pivot
+`pivot` has the following signature:
+
+	(pivot coll grouping-fn & fns)
+
+It is designed to take an alternating list of mapping and reducing functions.
+
+##freq
+`freq` is a special mapping function.  It constantly returns 1.  This is to enable counting in the pivot method.
+
