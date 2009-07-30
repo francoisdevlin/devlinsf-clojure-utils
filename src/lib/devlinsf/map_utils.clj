@@ -85,38 +85,6 @@
   [& proj-coll]
   (fn [input-map] (vec (reduce concat (map #(% input-map) proj-coll)))))
 
-
-(defn pivot-old
-  "This function is designed to reudce a list of tuples to a single map."
-  ([data kf vf](pivot data kf vf +))
-  ([data kf vf reduct-fn]
-    (apply merge-with reduct-fn 
-      (map #(apply hash-map ((proj kf vf) %))
-        data))))
-
-(defn freq
-  "This function returns 1 regardless of inputs.  Very useful for determining a count with 
-  pivot tables"
-  [& ignored-params]
-  1)
-
-
-(defn pivot
-  "This function is designed to reudce a list of tuples to a single map. It is supposed to take a list of
-  alternating mapping and reduction functions.
-
-  If no functions are provided, it uses freq as the mapping fn and + as the reduction fn."
-  ([coll grouping-fn](pivot coll grouping-fn freq +))
-  ([coll grouping-fn & fns]
-     (if (even? (count fns))
-       (let [reduce-help (fn [a-fn accum-val new-val] (a-fn accum-val new-val))
-	     mapping-fns (map first (partition 2 fns))
-	     reduction-fns (map second (partition 2 fns))
-	     mapped-tuples (map #(hash-map (grouping-fn %) ((apply proj mapping-fns) %)) coll)]
-	 (apply merge-with 
-		(fn[accum-vec new-vec] (vec (map reduce-help reduction-fns accum-vec new-vec)))
-		mapped-tuples)))))
-
 (defn map-vals
   [f coll] 
   (apply merge (map (fn[[k v]] { k (f v)}) coll)))
@@ -140,3 +108,30 @@
 	 (map  
 	  #(apply hash-map %) 
 	  (remove pred a-map))))
+
+(defn freq
+  "This function returns 1 regardless of inputs.  Very useful for determining a count with 
+  pivot tables"
+  [& ignored-params]
+  1)
+  
+(defn pivot
+  "This function is designed to reudce a list of tuples to a single map. It is supposed to take a list of
+  alternating mapping and reduction functions.  The resulting values are stored in a vector.
+
+  If no functions are provided, it uses freq as the mapping fn and + as the reduction fn."
+  ([coll grouping-fn](pivot coll grouping-fn freq +))
+  ([coll grouping-fn & fns]
+     (if (even? (count fns))
+       (let [reduce-help (fn [a-fn accum-val new-val] (a-fn accum-val new-val))
+	     mapping-fns (map first (partition 2 fns))
+	     reduction-fns (map second (partition 2 fns))
+	     mapped-tuples (map #(hash-map (grouping-fn %) ((apply proj mapping-fns) %)) coll)]
+	 (apply merge-with 
+		(fn[accum-vec new-vec] (vec (map reduce-help reduction-fns accum-vec new-vec)))
+		mapped-tuples)))))
+
+(defn single-pivot
+  ([coll grouping-fn](single-pivot coll grouping-fn freq +))
+  ([coll grouping-fn & fns](map-vals first (apply pivot coll grouping-fn fns))))
+
