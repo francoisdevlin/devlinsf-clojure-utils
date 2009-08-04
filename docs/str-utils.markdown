@@ -136,12 +136,23 @@ This function is designed to be similar to the take function from the core. It s
 Also, it can take a regex instead of an integer, and will take everything before the regex. Be careful not to combine a regex and a sequence, as 
 this will cause an error. Finally, an optional `:include` parameter can be passed to include the matched regex.
 
-	(str-take 7 "Clojure Is Awesome")	=>	"Clojure"
-	(str-take 2 ["Clojure" "Is" "Awesome"])	=>	"ClojureIs"
-	(str-take #"\s+" "Clojure Is Awesome")	=>	"Clojure"
-	(str-take #"\s+" "Clojure Is Awesome" {:include true})	=>	"Clojure "
-	(str-take #"\s+" ["Clojure" "Is" "Awesome"])	=>	error
-	
+	user=>(str-take 7 "Clojure Is Awesome")
+	"Clojure"
+	user=>(str-take 2 ["Clojure" "Is" "Awesome"])
+	"ClojureIs"
+	user=>(str-take #"\s+" "Clojure Is Awesome")
+	"Clojure"
+	user=>(str-take #"\s+" "Clojure Is Awesome" {:include true})
+	"Clojure "
+	user=>(str-take #"\s+" ["Clojure" "Is" "Awesome"])
+	#error
+
+## str-take-while
+This behaves just like take-while, with the result wrapped to a string
+
+	user=>(str-take-while #(= \0 %) "000123")
+	"000"
+
 ## str-drop
 
 This function is designed to be similar to the drop function from the core. It specifically applies the str function to the resulting sequence. Also,
@@ -154,9 +165,16 @@ This function is designed to be similar to the drop function from the core. It s
 	(str-drop #"\s+" "Clojure Is Awesome" {:include true})	=>	" Is Awesome"
 	(str-drop #"\s+" ["Clojure" "Is" "Awesome"])	=>	error
 
+## str-drop-while
+
+This behaves just like drop-while, with the result wrapped to a string
+
+	user=>(str-take-while #(= \0 %) "000123")
+	"123"
+
 ## str-rest
 
-This function applies str to the rest of the input. It is equivalent to `(str-drop 1 input)`
+This function applies str to the rest of the input. It is equivalent to `(apply str (rest input))`
 
 	(str-rest (str :Clojure))`	=>	"Clojure"
 ## str-reverse
@@ -207,18 +225,32 @@ This is a convenience wrapper for the toUpperCase method java supplies
 	(upcase "Clojure") => "CLOJURE"
 ## capitalize
 
-This method capitalizes a string
+This function capitalizes a string
 
 	(capitalize "clojure") => "Clojure"
 ## titleize, camelize, dasherize, underscore
 
-These methods manipulate "sentences", producing a consistent output. Check the unit tests for more examples
+These functions manipulate "sentences", producing a consistent output. Check the unit tests for more examples
 
 	(titleize "clojure iS Awesome")	=>	"Clojure Is Awesome"
 	(camleize "clojure iS Awesome")	=>	"clojureIsAwesome"
 	(dasherize "clojure iS Awesome")	=>	"clojure-is-awesome"
 	(underscore "clojure iS Awesome")	=>	"clojure_is_awesome"
+	
+## keyword inflectors
 
+### keywordize
+
+This function is similar to dasherize.  However, the following characters will be removed: 
+
+	( ) " ' : #
+
+### str->keyword
+
+This is a convenience wrapper.  It is the same as
+
+	(keyword (keywordize "a-string"))
+	
 ## pluralize
 
 This is an early attempt at Rails' pluralaize function. The code for the pluralize function was based on functions contributed by Brian Doyle.

@@ -158,6 +158,16 @@
   [parameter input-string]
   (apply str (drop parameter input-string)))
 
+(defn str-drop-while
+  "Works like drop-while, but wraps the result into a string."
+  [pred coll]
+  (apply str (drop-while pred coll)))
+ 
+(defn str-take-while
+  "Works like drop-while, but wraps the result into a string."
+  [pred coll]
+  (apply str (take-while pred coll)))
+
 (defn str-before [#^String input-string #^java.util.regex.Pattern regex]
   (let [matches (re-partition input-string regex)]
     (first matches)))
@@ -260,8 +270,13 @@
     (str-join "_" (map downcase words))))
 
 (defn keywordize
+  "This method takes a string and gets it ready to become a keyword."
   [input-string]
   (str (trim (dasherize (re-gsub (downcase input-string) #"[\(\)\"\'\:\#]" "")))))
+
+(defn str->keyword
+  [input-string]
+  (keyword (keywordize input-string)))
 
 ;;;The code for the singularize function was based on functions contributed by Brian Doyle and John Hume
 (defn singularize
