@@ -126,7 +126,7 @@ This behaves just like `filter`.  `pred` is applied to each entry of the hash-ma
 ##remove-map
 This behaves just like `remove`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
 
-#Pivoting a list of tuples
+#Pivoting a list of hashes
 This was inspired by the pivot table feature of Excel.  It is very common to have to group, map, and reduce a list of tuples.  The pivot function is designed to handle all of the 
 skeleton code, so that the developer only has to worry about three things:
 
@@ -144,4 +144,17 @@ It is designed to take an alternating list of mapping and reducing functions.
 
 ##freq
 `freq` is a special mapping function.  It constantly returns 1.  This is to enable counting in the pivot method.
+
+#Joining a list of hashes
+This library also includes a set of methods to perform joins.  Currently the following type of joins are supported
+
+* inner-join (equi, nautural, cross)
+* left-outer-join
+* right-outer-join
+
+Let's consider an example.
+
+	user=> (def test-left [{:name "Sean" :age 27} {:name "Ross" :age 27}])
+	
+	user=> (def test-right [{:owner "Sean" :item "Beer"} {:owner "Sean" :item "Pizza"}{:owner "Ross" :item "Computer"}{:owner "Matt" :item "Bike"}])
 

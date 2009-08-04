@@ -1,5 +1,7 @@
 (ns lib.devlinsf.map-utils
-  (:use lib.devlinsf.str-utils))
+  (:use lib.devlinsf.str-utils
+	clojure.contrib.seq-utils
+	clojure.set))
 
 (defn list-to-map
   [& params]
@@ -154,4 +156,67 @@
   ([coll key-fn val-fn] (marshall-hashmap coll key-fn val-fn merge-like))
   ([coll key-fn val-fn merge-fn]
      (apply merge-with merge-fn
-	    (map (fn [entry] {(key-fn entry) (val-fn entry)}) coll))))
+	    (map (fn [entry] {(key-fn entry) (val-fn entry)}) coll))))  
+
+(defn inner-style
+  [left-keys right-keys]
+  (intersection (set left-keys) (set right-keys)))
+
+(defn left-outer-style
+  [left-keys right-keys]
+  left-keys)
+
+(defn right-outer-style
+  [left-keys right-keys]
+  right-keys)
+
+(defn full-outer-style
+  [left-keys right-keys]
+  (union (set left-keys) (set right-keys)))
+
+(defn join-worker
+  ([join-style coll-a coll-b join-fn-a] (join-worker join-style coll-a coll-b join-fn-a join-fn-a))
+  ([join-style coll-a coll-b join-fn-a join-fn-b]
+     (let [keys-a (keys (first coll-a)) ;The column names of coll-a
+	   keys-b (keys (first coll-b)) ;The column names of coll-b
+	   indexed-a (group-by join-fn-a coll-a)
+	   indexed-b (group-by join-fn-b coll-b)
+	   desired-joins (join-style (keys indexed-a) (keys indexed-b))]
+       (reduce concat (map (fn [joined-value]
+			     (for [left-side (get indexed-a joined-value [{}])
+				   right-side (get indexed-b joined-value [{}])]
+			       (merge left-side right-side)))
+			   desired-joins)))))
+
+(defmacro defjoin
+  [join-name join-style doc-string]
+  `(do
+     (defn ~join-name
+       ~(str doc-string
+	     "\n  This function take a left collection, a right collection, and at least one join function.  If only one
+join function is provided, it is used on both the left & right hand sides.")
+       ([~'left-coll ~'right-coll ~'join-fn]
+	  (join-worker ~join-style ~'left-coll ~'right-coll ~'join-fn ~'join-fn))
+       ([~'left-coll ~'right-coll ~'left-join-fn ~'right-join-fn]
+	  (join-worker ~join-style ~'left-coll ~'right-coll ~'left-join-fn ~'right-join-fn)))))
+
+(defjoin inner-join inner-style "This is for performing inner joins.  The join value must exist in both lists.")
+(defjoin left-outer-join left-outer-style "This is for performing left outer joins.  The join value must exist in the left hand list.")
+(defjoin right-outer-join right-outer-style "This is for performing right outer joins.  The join value must exist in the right hand list.")
+(defjoin full-outer-join full-outer-style "This is for performing full outer joins.  The join value may exist in either list.")
+
+(defn natural-join
+  "Performs the natural join.  If there are no keys that intersect, the join is not performed."
+  [left-coll right-coll]
+  (let [left-keys (keys (first left-coll))
+	right-keys (keys (first right-coll))
+	intersect (intersection (set left-keys) (set right-keys))]
+    (if (empty? intersect)
+      []
+      (inner-join left-coll right-coll (apply proj intersect)))))
+	
+
+(defn cross-join
+  "DAMN CLOJURE IS AWESOME"
+  [left-coll right-coll]
+  (inner-join left-coll right-coll (constantly 1)))
