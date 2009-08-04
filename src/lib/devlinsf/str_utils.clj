@@ -2,7 +2,6 @@
 
 ;;; String Merging & Slicing
 
-
 (defmulti re-partition (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
 
 ;  "Splits the string into a lazy sequence of substrings, alternating
@@ -275,6 +274,7 @@
   (str (trim (dasherize (re-gsub (downcase input-string) #"[\(\)\"\'\:\#]" "")))))
 
 (defn str->keyword
+  "This method is the same as (keyword (keywordize input-string))."
   [input-string]
   (keyword (keywordize input-string)))
 

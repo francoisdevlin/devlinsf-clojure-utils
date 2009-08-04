@@ -135,3 +135,23 @@
   ([coll grouping-fn](single-pivot coll grouping-fn freq +))
   ([coll grouping-fn & fns](map-vals first (apply pivot coll grouping-fn fns))))
 
+(defn- merge-like
+  "This is an internal function so that merge with behaves like merge.  It is the default for marshall hashmap."
+  [accum current]
+  current)
+
+(defn marshall-hashmap
+  "This is a function designed to marsh a hash-map from a collection.  Very handy to combine with a 
+  parser.  The defualts are
+
+  key-fn: first
+  val-fn: second
+  merge-fn: merge-like
+
+  They are progressively replaced as the arity increases."
+  ([coll] (marshall-hashmap coll first second merge-like))
+  ([coll key-fn] (marshall-hashmap coll key-fn second merge-like))
+  ([coll key-fn val-fn] (marshall-hashmap coll key-fn val-fn merge-like))
+  ([coll key-fn val-fn merge-fn]
+     (apply merge-with merge-fn
+	    (map (fn [entry] {(key-fn entry) (val-fn entry)}) coll))))
