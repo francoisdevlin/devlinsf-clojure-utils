@@ -149,12 +149,15 @@ It is designed to take an alternating list of mapping and reducing functions.
 This library also includes a set of methods to perform joins.  Currently the following type of joins are supported
 
 * inner-join (equi, nautural, cross)
-* left-outer-join
-* right-outer-join
+* outer-join (left, right, full (I think...))
 
 Let's consider an example.
 
-	user=> (def test-left [{:name "Sean" :age 27} {:name "Ross" :age 27}])
+	user=> (def test-left [{:name "Sean" :age 27} {:name "Ross" :age 27} {:name "Brian" :age 22}])
 	
 	user=> (def test-right [{:owner "Sean" :item "Beer"} {:owner "Sean" :item "Pizza"}{:owner "Ross" :item "Computer"}{:owner "Matt" :item "Bike"}])
 
+	user=> (inner-join test-left test-right :name :owner)
+	({:item "Computer", :owner "Ross", :name "Ross", :age 27} {:item "Beer", :owner "Sean", :name "Sean", :age 27} {:item "Pizza", :owner "Sean", :name "Sean", :age 27})
+
+Booya.
