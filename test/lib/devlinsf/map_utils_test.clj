@@ -7,10 +7,10 @@
 		{:name "Ross" :age 27}
 		{:name "Brian" :age 22}])
 
-(def test-right [{:owner "Sean" :item "Beer"} 
-		 {:owner "Sean" :item "Pizza"}
-		 {:owner "Ross" :item "Computer"}
-		 {:owner "Matt" :item "Bike"}])
+(def test-right [{:owner "Sean" :item "Beer" :cost 2.75} 
+		 {:owner "Sean" :item "Pizza" :cost 10.99}
+		 {:owner "Ross" :item "Computer" :cost 999.00}
+		 {:owner "Matt" :item "Bike" :cost 2500.00}])
 
 (def test-hash {:owner "Sean" :item "Beer"})
 

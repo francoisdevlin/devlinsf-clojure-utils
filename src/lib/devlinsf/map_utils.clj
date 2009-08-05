@@ -156,7 +156,7 @@
   ([coll key-fn val-fn] (marshall-hashmap coll key-fn val-fn merge-like))
   ([coll key-fn val-fn merge-fn]
      (apply merge-with merge-fn
-	    (map (fn [entry] {(key-fn entry) (val-fn entry)}) coll))))  
+	    (map (fn [entry] {(key-fn entry) (val-fn entry)}) coll))))
 
 (defn inner-style
   [left-keys right-keys]

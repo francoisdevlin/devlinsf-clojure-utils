@@ -116,6 +116,26 @@ to decode the specific key it is assigned to.
 	
 We'll see proj in action better when we get to the section on joins
 
+#marshall-hashmap
+This is designed to aid in transforming a list into a hash-map.  Typically a list of pairs need a minor transformation to become a hash-map.
+###Signature
+
+	(marshall-hashmap coll)
+ 	(marshall-hashmap coll key-fn)
+ 	(marshall-hashmap coll key-fn val-fn)
+ 	(marshall-hashmap coll key-fn val-fn merge-fn)
+
+This is a function designed to marsh a hash-map from a collection.  Very handy to combine with a parser.  The defaults are
+
+	key-fn: first
+	val-fn: second
+	merge-fn: merge-like
+
+They are progressively replaced as the arity increases.
+
+###Usage
+TO DO: Add an example
+
 #Altering a map
 All the higher order functions in clojure accept and return a seq.  It is common to transform the resulting seq into a hash map.  These are a few functions that do this for you automatically.
 
