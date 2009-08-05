@@ -175,6 +175,7 @@
   (union (set left-keys) (set right-keys)))
 
 (defn join-worker
+  "This is an internal method to be used in each join function."
   ([join-style coll-a coll-b join-fn-a] (join-worker join-style coll-a coll-b join-fn-a join-fn-a))
   ([join-style coll-a coll-b join-fn-a join-fn-b]
      (let [keys-a (keys (first coll-a)) ;The column names of coll-a
@@ -215,7 +216,6 @@ join function is provided, it is used on both the left & right hand sides.")
       []
       (inner-join left-coll right-coll (apply proj intersect)))))
 	
-
 (defn cross-join
   "DAMN CLOJURE IS AWESOME"
   [left-coll right-coll]

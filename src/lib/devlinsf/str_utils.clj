@@ -375,3 +375,18 @@ english speakers."
 (defn vowels
   [word]
   (- (count word) (consanants word)))
+
+(defn to-html-table
+  [tuple-list]
+  (map 
+   (fn[row]
+     (str "<tr>\n"
+	  (map (fn[cell] (str "<td>" cell "</td>\n")) row)
+	  "</tr>\n"))
+   tuple-list))
+
+(defn to-tab-str
+  [tuple-list]
+  (str-join 
+   "\n"
+   (map (partial str-join "\t") tuple-list)))

@@ -151,13 +151,115 @@ This library also includes a set of methods to perform joins.  Currently the fol
 * inner-join (equi, nautural, cross)
 * outer-join (left, right, full (I think...))
 
-Let's consider an example.
+Let's define some terms for our examples.
 
 	user=> (def test-left [{:name "Sean" :age 27} {:name "Ross" :age 27} {:name "Brian" :age 22}])
-	
 	user=> (def test-right [{:owner "Sean" :item "Beer"} {:owner "Sean" :item "Pizza"}{:owner "Ross" :item "Computer"}{:owner "Matt" :item "Bike"}])
+	user=> (def test-proj (proj :name :age :owner :item))
 
-	user=> (inner-join test-left test-right :name :owner)
-	({:item "Computer", :owner "Ross", :name "Ross", :age 27} {:item "Beer", :owner "Sean", :name "Sean", :age 27} {:item "Pizza", :owner "Sean", :name "Sean", :age 27})
+##inner-join (equi)
+This is for performing inner joins.  The join value must exist in both lists. This function takes a left collection, 
+a right collection, and at least one join function.  If only one join function is provided, it is used on both the left & right hand sides.	
+###Signature
 
+	(inner-join left-coll right-coll join-fn)
+	(inner-join left-coll right-coll left-join-fn right-join-fn)
+	
+###Usage
+
+	user=> (println (to-tab-str (map test-proj (inner-join test-left test-right :name :owner))))
+	Ross	27	Ross	Computer
+	Sean	27	Sean	Beer
+	Sean	27	Sean	Pizza
+	nil
+
+Yup, this behaves properly.
+	
+##natural-join (natural)
+This performs a natural join on the two collections.
+###Signature
+	(natural-join left-coll right-coll)
+###Usage
+	user=> (println (to-tab-str (map test-proj (natural-join test-left test-right))))
+	nil
+
+Hmmm... nothing.  This is what we would expect.  Let's see if we can make this work with a mapping operation on the test-right data.
+
+	user=> (println (to-tab-str (map test-proj (natural-join test-left (map (trans :name #(% :owner)) test-right)))))
+	Ross	27	Ross	Computer
+	Sean	27	Sean	Beer
+	Sean	27	Sean	Pizza
+	nil
+	
+Perfect.
+
+##cross-join (cross)
+###Signature
+	(cross-join left-coll right-coll)
+###Usage
+	user=> (println (to-tab-str (map test-proj (cross-join test-left test-right))))
+	Sean	27	Sean	Beer
+	Sean	27	Sean	Pizza
+	Sean	27	Ross	Computer
+	Sean	27	Matt	Bike
+	Ross	27	Sean	Beer
+	Ross	27	Sean	Pizza
+	Ross	27	Ross	Computer
+	Ross	27	Matt	Bike
+	Brian	22	Sean	Beer
+	Brian	22	Sean	Pizza
+	Brian	22	Ross	Computer
+	Brian	22	Matt	Bike
+	nil
+
+Yup, it's verbose output.
+
+## left-outer-join
+This is for performing left outer joins.  The join value must exist in the left hand list. This function takes a left collection,
+a right collection, and at least one join function.  If only one join function is provided, it is used on both the left & right hand sides.
+###Signature
+	(left-inner-join left-coll right-coll join-fn)
+	(left-innner-join left-coll right-coll left-join-fn right-join-fn)
+	
+###Usage
+	user=> (println (to-tab-str (map test-proj (left-outer-join test-left test-right :name :owner))))
+	Brian	22	null	null
+	Ross	27	Ross	Computer
+	Sean	27	Sean	Beer
+	Sean	27	Sean	Pizza
+	nil
+	
+## right-outer-join
+This is for performing right outer joins.  The join value must exist in the right hand list. This function takes a left collection,
+a right collection, and at least one join function.  If only one join function is provided, it is used on both the left & right hand sides.
+###Signature
+	(right-inner-join left-coll right-coll join-fn)
+	(right-innner-join left-coll right-coll left-join-fn right-join-fn)
+	
+###Usage
+
+	user=> (println (to-tab-str (map test-proj (right-outer-join test-left test-right :name :owner))))
+	null	null	Matt	Bike
+	Ross	27		Ross	Computer
+	Sean	27		Sean	Beer
+	Sean	27		Sean	Pizza
+	nil
+
+## full-outer-join
+This is for performing full outer joins.  The join value may exist in either list. This function takes a left collection,
+a right collection, and at least one join function.  If only one join function is provided, it is used on both the left & right hand sides.
+###Signature
+	(full-inner-join left-coll right-coll join-fn)
+	(full-innner-join left-coll right-coll left-join-fn right-join-fn)
+	
+###Usage
+
+	user=> (println (to-tab-str (map test-proj (full-outer-join test-left test-right :name :owner))))
+	Brian	22		null	null	
+	null	null	Matt	Bike
+	Ross	27		Ross	Computer
+	Sean	27		Sean	Beer
+	Sean	27		Sean	Pizza
+	nil
+	
 Booya.
