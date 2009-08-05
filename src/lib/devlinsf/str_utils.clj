@@ -376,8 +376,10 @@ english speakers."
   [word]
   (- (count word) (consanants word)))
 
-(defn to-html-table
+;;String output
+(defn to-html-table-body
   [tuple-list]
+  "Expects a seq of seqs.  Turns it into an html table body."
   (map 
    (fn[row]
      (str "<tr>\n"
@@ -386,6 +388,7 @@ english speakers."
    tuple-list))
 
 (defn to-tab-str
+  "Expects a seq of seqs.  Turns it into a tab delimited list."
   [tuple-list]
   (str-join 
    "\n"
