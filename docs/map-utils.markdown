@@ -109,7 +109,12 @@ to decode the specific key it is assigned to.
 	{:a "Not Awesome", :b "B", :c "C"} 
 	
 #Projecting a map
-`proj` is used to apply a list of functions to a map, and return the result as a vector.
+`proj` is used to apply a list of functions to a map, and return the result as a vector.  Here's an example with the same `test-map` as above.
+
+	user=> ((proj :a :b :c count) test-map)
+	[0 "B" "C" 3]
+	
+We'll see proj in action better when we get to the section on joins
 
 #Altering a map
 All the higher order functions in clojure accept and return a seq.  It is common to transform the resulting seq into a hash map.  These are a few functions that do this for you automatically.
@@ -126,25 +131,6 @@ This behaves just like `filter`.  `pred` is applied to each entry of the hash-ma
 ##remove-map
 This behaves just like `remove`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
 
-#Pivoting a list of hashes
-This was inspired by the pivot table feature of Excel.  It is very common to have to group, map, and reduce a list of tuples.  The pivot function is designed to handle all of the 
-skeleton code, so that the developer only has to worry about three things:
-
-1. How the data is grouped.
-2. How each tuple is mapped.
-3. How each mapping is reduced.
-
-
-##pivot
-`pivot` has the following signature:
-
-	(pivot coll grouping-fn & fns)
-
-It is designed to take an alternating list of mapping and reducing functions.
-
-##freq
-`freq` is a special mapping function.  It constantly returns 1.  This is to enable counting in the pivot method.
-
 #Joining a list of hashes
 This library also includes a set of methods to perform joins.  Currently the following type of joins are supported
 
@@ -153,8 +139,17 @@ This library also includes a set of methods to perform joins.  Currently the fol
 
 Let's define some terms for our examples.
 
-	user=> (def test-left [{:name "Sean" :age 27} {:name "Ross" :age 27} {:name "Brian" :age 22}])
-	user=> (def test-right [{:owner "Sean" :item "Beer"} {:owner "Sean" :item "Pizza"}{:owner "Ross" :item "Computer"}{:owner "Matt" :item "Bike"}])
+	user=> (def test-left 
+			[{:name "Sean" :age 27} 
+			 {:name "Ross" :age 27} 
+			 {:name "Brian" :age 22}])
+			
+	user=> (def test-right 
+			[{:owner "Sean" :item "Beer"} 
+			 {:owner "Sean" :item "Pizza"}
+			 {:owner "Ross" :item "Computer"}
+			 {:owner "Matt" :item "Bike"}])
+			
 	user=> (def test-proj (proj :name :age :owner :item))
 
 ##inner-join (equi)
@@ -263,3 +258,29 @@ a right collection, and at least one join function.  If only one join function i
 	nil
 	
 Booya.
+
+#Pivoting a list of hashes
+This was inspired by the pivot table feature of Excel.  It is very common to have to group, map, and reduce a list of tuples.  The pivot function is designed to handle all of the 
+skeleton code, so that the developer only has to worry about three things:
+
+1. How the data is grouped.
+2. How each hash is mapped.
+3. How each mapping is reduced.
+
+##freq
+`freq` is a special mapping function.  It constantly returns 1.  This is to enable counting in the pivot method.
+
+##pivot
+`pivot` has the following signature:
+
+	(pivot coll grouping-fn & fns)
+
+It is designed to take an alternating list of mapping and reducing functions.  Let's use the test-right data above as an example.
+
+	user=> (pivot test-right :owner (comp count :item) +)
+	{"Matt" [4], "Ross" [8], "Sean" [9]}
+
+The data is grouped by :owner, each row is mapped by the `(comp count :item)` function (it computes the length of item), 
+and the resulting lists are reduced by the `+` function.
+
+
