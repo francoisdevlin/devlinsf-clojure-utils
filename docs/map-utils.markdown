@@ -7,7 +7,13 @@ July 1, 2009
 Namespace: lib.devlinsf.map-utils
 
 This is a collection of map utility functions that I use when manipulating map data.  Since much of clojure is designed around manipulating a list of tuples, 
-I find these very handy.  First, we will look at transforming a map.  Then we'll take a look at project a map, followed by pivoting over a list of tuples.
+I find these very handy.  This documentation reviews how to do the following things.
+
+* transforming a map
+* projecting a map
+* marshalling a map
+* joining map lists
+* pivoting map lists
 
 #Tranforming a map
 
@@ -137,7 +143,8 @@ They are progressively replaced as the arity increases.
 TO DO: Add an example
 
 #Altering a map
-All the higher order functions in clojure accept and return a seq.  It is common to transform the resulting seq into a hash map.  These are a few functions that do this for you automatically.
+All the higher order functions in clojure accept and return a seq.  It is common to transform the resulting seq into a hash map.
+These are a few functions that do this for you automatically.
 
 ##map-vals
 This is like the `map` operator, but it applies `f` to every value of the hash map instead of the entry.  It returns a hash map.
@@ -152,10 +159,15 @@ This behaves just like `filter`.  `pred` is applied to each entry of the hash-ma
 This behaves just like `remove`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
 
 #Joining a list of hashes
-This library also includes a set of methods to perform joins.  Currently the following type of joins are supported
+There are many times when you need to perform a type of join on a list of data, but it cannot 
+be performed on the back end.  The back end may not support the type of join, or you may need to join
+data from two different back ends (e.g. one SQL and another REST). 
+
+In order to solve this problem, this library also includes a set of functions to perform joins.  
+Currently the following type of joins are supported
 
 * inner-join (equi, nautural, cross)
-* outer-join (left, right, full (I think...))
+* outer-join (left, right, full)
 
 Let's define some terms for our examples.
 
