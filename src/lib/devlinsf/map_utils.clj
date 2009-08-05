@@ -144,7 +144,7 @@
 
 (defn marshall-hashmap
   "This is a function designed to marsh a hash-map from a collection.  Very handy to combine with a 
-  parser.  The defualts are
+  parser.  The defaults are
 
   key-fn: first
   val-fn: second
@@ -194,7 +194,7 @@
   `(do
      (defn ~join-name
        ~(str doc-string
-	     "\n  This function take a left collection, a right collection, and at least one join function.  If only one
+	     "\n  This function takes a left collection, a right collection, and at least one join function.  If only one
 join function is provided, it is used on both the left & right hand sides.")
        ([~'left-coll ~'right-coll ~'join-fn]
 	  (join-worker ~join-style ~'left-coll ~'right-coll ~'join-fn ~'join-fn))
