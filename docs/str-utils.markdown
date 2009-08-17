@@ -92,7 +92,7 @@ Again, this method can take a list or two atoms as the remaining inputs.
 
 Note: This signature sucks.  Should be this:
 
-	(re-gsub "1 2 3 4 5 6" #"\d" "D" #"\d" "E")
+	(re-sub "1 2 3 4 5 6" #"\d" "D" #"\d" "E")
 
 
 #The nearby Function

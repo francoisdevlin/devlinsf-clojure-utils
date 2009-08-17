@@ -34,16 +34,32 @@ Your username
 
 Your password
 
-#`where-clause [conditions-map]`
+#sql-select-str
+This is a wrapper for generating SQL
+###Signature
+	(sql-select-str table column-vector where-map)
+	
+Table can be either a string or keyword.
+
+Column vector controls which columns are retrieved.  If it is empty or nil, `SELECT *` is generated.
+
+The where-map is used to create a where clause.
+
+Joins are deliberately not supported.
+###Usage
+	user=> (sql-select-str :foo [:a :b] {:a "Awesome" :b [1 2]})
+	"SELECT a, b FROM foo WHERE a=\"Awesome\" AND b IN (1, 2)"
+
+##`where-clause [conditions-map]`
 
 The goal was to have the following s-expression generate valid SQL
 
-(str "select * from FOO where " (where-clause _conditions-map_) )
+	(str "select * from FOO where " (where-clause _conditions-map_) )
 
 This function takes a map as inputs, and expands it to a SQL where clause.  This is probably best explained by example.
 
 
-## Substitution Examples
+### Substitution Examples
 
 First, consider the most basic condition you could think of.
 
@@ -61,7 +77,7 @@ Also, a key with a value of nil will generate an "IS NULL" clause
 
 	(where-clause {"id" nil}) => "id IS NULL"
 
-## AND, OR & IN
+### AND, OR & IN
 
 I have found the following statements to be true for 99% of my queries.
 

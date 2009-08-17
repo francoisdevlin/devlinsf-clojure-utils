@@ -2,8 +2,6 @@
 
 ;;; String Merging & Slicing
 
-(defmulti re-partition (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
-
 ;  "Splits the string into a lazy sequence of substrings, alternating
 ;  between substrings that match the patthern and the substrings
 ;  between the matches.  The sequence always starts with the substring
@@ -13,8 +11,8 @@
 ;  For example: (re-partition \"abc123def\" #\"[a-z]+\")
 ;
 ;  Returns: (\"\" \"abc\" \"123\" \"def\")"
-(defmethod re-partition java.util.regex.Pattern
-  [#^String string #^java.util.regex.Pattern re]
+(defn re-partition
+  [#^java.util.regex.Pattern re #^String string]
   (let [m (re-matcher re string)]
     ((fn step [prevend]
        (lazy-seq
@@ -26,56 +24,17 @@
             (list (.subSequence string prevend (.length string)))))))
      0)))
 
-(defmethod re-partition clojure.lang.PersistentList
-  [#^String input-string patterns]
-  (let [reversed (reverse patterns)
-	pattern (first reversed)
-	remaining (rest reversed)]
-    (if (empty? remaining)
-      (re-partition input-string pattern)
-      (map #(re-partition % pattern) (re-partition input-string (reverse remaining))))))
-
-(defmulti re-split (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
-
-;This methods does the actual work of the re-split method.  It is lazy.
-(defmethod re-split java.util.regex.Pattern
-  [#^String input-string #^java.util.regex.Pattern pattern]
+(defn split
+  [#^java.util.regex.Pattern pattern #^String input-string]
   ((fn step[input-sequence]
      (lazy-seq
        (if (first input-sequence)
 	 (cons (first input-sequence) (step (drop 2 input-sequence)))
 	 '())))
-   (re-partition input-string pattern)))
+   (re-partition pattern input-string)))
 
-(defmethod re-split clojure.lang.PersistentList
-  [#^String input-string patterns]
-  (let [reversed (reverse patterns)
-	pattern (first reversed)
-	remaining (rest reversed)]
-    (if (empty? remaining)
-      (re-split input-string pattern)
-      (map #(re-split % pattern) (re-split input-string (reverse remaining))))))
-
-(defmethod re-split clojure.lang.PersistentArrayMap
-  [#^String input-string map-options]
-  (cond 
-   (:marshal-fn map-options) (map (:marshal-fn map-options) (re-split input-string (dissoc map-options :marshal-fn)))
-   (:length map-options) (take (:length map-options) (re-split input-string (dissoc map-options :length)))
-   (:offset map-options) (drop (:offset map-options) (re-split input-string (dissoc map-options :offset)))
-   'true (re-split input-string (:pattern map-options))))
-
-
-
-(defmulti re-gsub (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
-
-;  "Replaces all instances of 'pattern' in 'string' with
-;  'replacement'.  Like Ruby's 'String#gsub'.
-;  
-;  If (ifn? replacment) is true, the replacement is called with the
-;  match.
-;  "
-(defmethod re-gsub java.util.regex.Pattern
-  [#^String string #^java.util.regex.Pattern regex #^String replacement]
+(defn gsub
+  [#^java.util.regex.Pattern regex #^String replacement #^String string]
   (if (ifn? replacement)
     (let [parts (vec (re-partition regex string))]
       (apply str
@@ -84,26 +43,8 @@
                      parts (range 1 (count parts) 2))))
     (.. regex (matcher string) (replaceAll replacement))))
 
-(defmethod re-gsub clojure.lang.PersistentList
-  [#^String input-string regex-pattern-pairs]
-  (let [reversed (reverse regex-pattern-pairs)
-	pair (first reversed)
-	remaining (rest reversed)]
-    (if (empty? remaining)
-      (re-gsub input-string (first pair) (second pair))    
-      (re-gsub (re-gsub input-string (reverse remaining)) (first pair) (second pair)))))
-
-
-(defmulti re-sub (fn[input-string & remaining-inputs] (class (first remaining-inputs))))
-
-;  "Replaces the first instance of 'pattern' in 'string' with
-;  'replacement'.  Like Ruby's 'String#sub'.
-;  
-;  If (ifn? replacement) is true, the replacement is called with
-;  the match.
-;  "
-(defmethod re-sub java.util.regex.Pattern
-  [#^String string #^java.util.regex.Pattern regex #^String replacement ]
+(defn sub
+  [#^java.util.regex.Pattern regex #^String replacement #^String string]
   (if (ifn? replacement)
     (let [m (re-matcher regex string)]
       (if (.find m)
@@ -112,15 +53,6 @@
              (.subSequence string (.end m) (.length string)))
         string))
     (.. regex (matcher string) (replaceFirst replacement))))
-
-(defmethod re-sub clojure.lang.PersistentList
-  [#^String input-string regex-pattern-pairs]
-  (let [reversed (reverse regex-pattern-pairs)
-	pair (first reversed)
-	remaining (rest reversed)]
-    (if (empty? remaining)
-      (re-sub input-string (first pair) (second pair))    
-      (re-sub (re-sub input-string (reverse remaining)) (first pair) (second pair)))))
 
 ;;; Parsing Helpers
 (defmulti str-take (fn[parameter & remaining] (class parameter)))
@@ -247,36 +179,41 @@
 (defn titleize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is capitalized, and the result is joined with \" \"."
   [#^String input-string]
-  (let [words (re-split input-string #"[\s_-]+")]
+  (let [words (split #"[\s_-]+" input-string)]
     (str-join " " (map capitalize words))))
 
 (defn camelize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  The first word is captialized, and the rest are downcased, and the result is joined with \"\"."
   [#^String input-string]
-  (let [words (re-split input-string #"[\s_-]+")]
+  (let [words (split #"[\s_-]+" input-string)]
     (str-join "" (cons (downcase (first words)) (map capitalize (rest words))))))
 
 (defn dasherize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is downcased, and the result is joined with \"-\"."
   [#^String input-string]
-  (let [words (re-split input-string #"[\s_-]+")]
+  (let [words (split #"[\s_-]+" input-string)]
     (str-join "-" (map downcase words))))
 
 (defn underscore
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is downcased, and the result is joined with \"_\"."
   [#^String input-string]
-  (let [words (re-split input-string #"[\s_-]+")]
+  (let [words (split #"[\s_-]+" input-string)]
     (str-join "_" (map downcase words))))
 
-(defn keywordize
-  "This method takes a string and gets it ready to become a keyword."
-  [input-string]
-  (str (trim (dasherize (re-gsub (downcase input-string) #"[\(\)\"\'\:\#]" "")))))
+;"This method takes a string and gets it ready to become a keyword."
+(def keywordize
+  (comp str trim dasherize (partial gsub #"[\(\)\"\'\:\#]" "") downcase))
 
 (defn str->keyword
   "This method is the same as (keyword (keywordize input-string))."
   [input-string]
   (keyword (keywordize input-string)))
+
+(def split-tabs (partial split #"[\t]"))
+
+(def split-lines (partial split #"[\r\n]"))
+
+(def blank? (comp zero? count))
 
 ;;;The code for the singularize function was based on functions contributed by Brian Doyle and John Hume
 (defn singularize
@@ -284,9 +221,9 @@
   [#^String input-string]
   (let [lc (downcase input-string)]
     (cond
-      (.endsWith lc "ies") (re-sub lc #"ies$" "y")
-      (.endsWith lc "es") (re-sub lc #"es$" "")
-      :else (re-sub lc #"s$" ""))))
+      (.endsWith lc "ies") (sub #"ies$" "y" lc)
+      (.endsWith lc "es") (sub #"es$" "" lc)
+      :else (sub #"s$" "" lc))))
  
 ;;;The code for the pluralize function was based on functions contributed by Brian Doyle and John Hume
 (defn pluralize
@@ -294,9 +231,9 @@
   [#^String input-string]
   (let [lc (downcase input-string)]
     (cond
-      (.endsWith lc "y") (re-sub lc #"y$" "ies")
+      (.endsWith lc "y") (sub #"y$" "ies" lc)
       (some #(.endsWith lc %) ["s" "z" "ch" "sh" "x"]) (str lc "es")
-      :else (str lc "s"))))
+      :else (str "s" lc))))
 
 (defn swap-letters
   [#^String input-string]
@@ -340,22 +277,22 @@ english speakers."
 
 ;(defn sql-escape[x])
 
-(defn html-escape
-  "This function helps prevent XSS attacks, by disallowing certain charecters"
-  [#^String input-string]
-  (let [escaped-charecters '((#"&" " &amp; ")
-			  (#"<" " &gt; ")
-			  (#">" " &lt; ")
-			  (#"\"" " &quot; "))]
-    (re-gsub input-string escaped-charecters)))
+;(defn html-escape
+;  "This function helps prevent XSS attacks, by disallowing certain charecters"
+;  [#^String input-string]
+;  (let [escaped-charecters '((#"&" " &amp; ")
+;			  (#"<" " &gt; ")
+;			  (#">" " &lt; ")
+;			  (#"\"" " &quot; "))]
+;    (gsub input-string escaped-charecters)))
 
-(defn javascript-escape
-  "This function helps prevent XSS attacks, by disallowing certain charecters"
-  [#^String input-string]
-  (let [escaped-charecters '((#"&" "\u0026")
-			  (#"<" "\u003C")
-			  (#">" "\u003E"))]
-    (re-gsub input-string escaped-charecters)))
+;(defn javascript-escape
+;  "This function helps prevent XSS attacks, by disallowing certain charecters"
+;  [#^String input-string]
+;  (let [escaped-charecters '((#"&" "\u0026")
+;			  (#"<" "\u003C")
+;			  (#">" "\u003E"))]
+;    (re-gsub input-string escaped-charecters)))
 
 ;(defn pdf-escape[x])
 
@@ -367,14 +304,6 @@ english speakers."
 (defn parse-int
   [input-string]
   (java.lang.Integer/parseInt input-string))
-
-(defn consanants
-  [word]
-  (count (re-gsub (downcase word) #"[aeiou]" "")))
-
-(defn vowels
-  [word]
-  (- (count word) (consanants word)))
 
 ;;String output
 (defn to-html-table-body

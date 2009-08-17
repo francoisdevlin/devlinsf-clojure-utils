@@ -25,17 +25,6 @@
 			   ::nil
 			    (class %)))
 
-;(defn where-entry
-;  [map-entry]
-;  (let [k (first map-entry)
-;	v (second map-entry)]
-;    (cond
-;     (and (instance? clojure.lang.Seqable v) (empty v)) nil
-;     true (str
-;	   (sqlize-table k)
-;	   (clause-detect v)
-;	   (sqlize-column v)))))
-
 (defn where-entry
   [map-entry]
   (let [k (first map-entry)
@@ -49,10 +38,22 @@
   (str-join " AND "
     (filter identity (map where-entry where-map))))
 
+(defn sqlize-columns
+  [columns]
+  (cond
+   (nil? columns) "*"
+   (empty? columns) "*"
+   true (str-join ", "
+		  (map #(if (keyword? %)
+			  (str-rest (str %))
+			  %)
+		       columns))))
 
 (defn sql-select-str
-  [table-name where-map]
-  (str "SELECT * FROM "
+  [table-name column-vector where-map]
+  (str "SELECT "
+       (sqlize-columns column-vector)
+       " FROM "
     (sqlize-table table-name)
     (if where-map
       (str " WHERE " (where-clause where-map)))))
@@ -97,10 +98,10 @@
 
 ;;This is getting relocated...
 (defn get-tuples
-  [db table where-map]
+  [db table columns where-map]
   (with-connection db
     (with-query-results rs
-      [(sql-select-str table where-map)]
+      [(sql-select-str table columns where-map)]
       (loop [output ()
              results rs]
         (if (first results)

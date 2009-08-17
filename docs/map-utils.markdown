@@ -85,7 +85,7 @@ Or, we could use the def'd version
 
 ### In the STM
 
-This is my favorite used of trans so far
+This is my favorite use of trans so far
 
 	user=> (def test-ref (ref test-map)) 
 	#'user/test-ref 
@@ -115,6 +115,8 @@ to decode the specific key it is assigned to.
 	{:a "Not Awesome", :b "B", :c "C"} 
 	
 #Projecting a map
+`proj` is the parallel version of `comp`.  
+
 `proj` is used to apply a list of functions to a map, and return the result as a vector.  Here's an example with the same `test-map` as above.
 
 	user=> ((proj :a :b :c count) test-map)

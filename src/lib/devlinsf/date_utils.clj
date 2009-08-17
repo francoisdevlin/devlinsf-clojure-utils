@@ -157,3 +157,17 @@
 		    #(hash-map (first %) (. temp-cal get (second %)))
 		    field-consts)))))
     
+(defn yesterday
+  []
+  (let [ms-per-day 86400000]
+  (date (- (long-time) ms-per-day))))
+
+(defn before
+  "True if x is before y"
+  [x y]
+  (< (long-time x) (long-time y)))
+
+(defn after
+  "True if x is after y"
+  [x y]
+  (> (long-time x) (long-time y)))

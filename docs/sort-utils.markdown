@@ -44,7 +44,7 @@ right to left.
 
 Now, to define some simple test data 
 
-	(def test-tuples 
+	(def test-maps 
   		[{:a 0 :b 1} 
    		{:a 0 :b 3} 
    		{:a 0 :b 2} 
@@ -53,7 +53,7 @@ Now, to define some simple test data
 Since the chain comp returns a comparator, we'll use sort, and not 
 sort-by. The first example sorts by `:a`, and then `:b`.
 
-	user=> (sort (chain-comp (<=> :b) (<=> :a)) test-tuples) 
+	user=> (sort (chain-comp (<=> :b) (<=> :a)) test-maps) 
 	({:a 0, :b 1} {:a 0, :b 2} {:a 0, :b 3} {:a 1, :b 2}) 
 	
 This second example does the same thing, but sorts `:b` in reverse.

@@ -122,11 +122,13 @@
 (defmacro create-finder-fn
   [db-con table-name]
   (let [finder-symbol 'find-records
+	cols-symbol (gensym "cols-vec_")
         cond-symbol (gensym "cond-map_")]
     `(defn ~finder-symbol
-       ([] (~finder-symbol nil))
-       ([~cond-symbol]
-	  (get-tuples ~db-con ~table-name ~cond-symbol)))))
+       ([] (~finder-symbol nil nil))
+       ([~cols-symbol] (~finder-symbol ~cols-symbol nil))
+       ([~cols-symbol ~cond-symbol]
+	  (get-tuples ~db-con ~table-name ~cols-symbol ~cond-symbol)))))
 
 (defmacro create-insert-fn
   [db-con table-name]

@@ -1,23 +1,8 @@
 (ns lib.devlinsf.map-utils
   (:use lib.devlinsf.str-utils
+	lib.devlinsf.core
 	clojure.contrib.seq-utils
 	clojure.set))
-
-(defn list-to-map
-  [& params]
-  (apply hash-map 
-	 (reduce concat (partition 2 params))))
-
-(defn- find-params
-  [& input-list]
-  (if (= (class (first input-list)) java.lang.String)
-		     (rest input-list)
-		     input-list))
-
-(defn- find-doc-string
-  [& input-list]
-  (if (= (class (first input-list)) java.lang.String)
-    (first input-list)))
 
 (defn filter-nil-vals
   [input-map]
@@ -28,10 +13,10 @@
 (defn render-map
   [input-map kv-delimiter entry-delimiter]
   (str-join entry-delimiter 
-	    (map #(str (first %) kv-delimiter (second %)) input-map)))
+	    (map (partial str-join kv-delimiter) input-map)))
 
 (defn- transform-helper
-  "This is a helper fn for the the transform macro.  It allows maps to be passes in instaed of functions.
+  "This is a helper fn for the the trans(form) function.  It allows maps to be passes in instaed of functions.
   If a map is passed, it is applied to the key.  The thought is that the maps is a decoder.
   If a fn is passed, it is applied to the map.
   If anything else is passed, it is assoc'd with the key"
@@ -47,14 +32,29 @@
 	true fn-val)))))
 
 (defn trans
+  "This is similar to CL's let, the map does not have any information assoc'd until the end."
   [& params]
-  (let [transform-map (if (map? (first params))
-			(first params)
-			(apply list-to-map params))]
-    (fn [input-map]
-      (apply assoc input-map
-	     (reduce concat 
-		     (map (transform-helper input-map) transform-map))))))
+  (fn[a-map]
+    (reduce 
+     (fn[accum entry]
+       (let [k (first entry)
+	     v (second entry)]
+	 (assoc accum k (v a-map))))
+     a-map
+     (partition 2 params))))
+
+(defn trans*
+  "This is similar to CL's let*, the map gets the keys assoc'd as it goes."
+  [& params]
+  (fn[a-map]
+    (reduce 
+     (fn[accum entry]
+       (let [k (first entry)
+	     v (second entry)]
+	 (assoc accum k (v accum))))
+     a-map
+     (partition 2 params))))
+
 
 (defmacro deftrans
   [name & input-keys]
@@ -66,21 +66,15 @@
        (defn ~transform-symbol ~doc-string? [~input-map-symbol]
 	 ((trans ~@param-list) ~input-map-symbol)))))
 
-(defn proj
-  "Takes a list of input functions to be applied to a map.  The result is a closure."
-  [& params]
-  (fn [input-map] (vec (map #(% input-map) params))))
-
-(defmacro defproj
+(defmacro deftrans*
   [name & input-keys]
-  (let [proj-symbol name
+  (let [transform-symbol name
 	param-list (apply find-params input-keys)
 	doc-string? (str (apply find-doc-string input-keys))
 	input-map-symbol (gensym "input-map_")]
     `(do
-       (defn ~proj-symbol ~doc-string? [~input-map-symbol]
-	 ((proj ~@param-list) ~input-map-symbol)))))
-
+       (defn ~transform-symbol ~doc-string? [~input-map-symbol]
+	 ((trans* ~@param-list) ~input-map-symbol)))))
 
 (defn cat-proj
   "This function takes a collection of proj closures and returns a clojure that eagerly concatentates them."
@@ -88,10 +82,14 @@
   (fn [input-map] (vec (reduce concat (map #(% input-map) proj-coll)))))
 
 (defn map-vals
+  "This function behaves like map, except that f is applied to the values of the map, not just the entry.
+   The result is a hash-map, not a seq."
   [f coll] 
   (apply merge (map (fn[[k v]] { k (f v)}) coll)))
 
 (defn map-keys
+  "This function behaves like map, except that f is applied to the keys of the map, not just the entry.
+   The result is a hash-map, not a seq."
   [f coll] 
   (apply merge (map (fn[[k v]] { (f k) v}) coll)))
 
@@ -111,6 +109,34 @@
 	  #(apply hash-map %) 
 	  (remove pred a-map))))
 
+(defn- merge-like
+  "This is an internal function so that merge with behaves like merge.  It is the default for marshall hashmap."
+  [accum current]
+  current)
+
+(defn marshall-hashmap
+  "This is a function designed to marsh a hash-map from a collection.  Very handy to combine with a 
+  parser.  The defaults are
+
+  key-fn: first
+  val-fn: second
+  merge-fn: merge-like
+
+  They are progressively replaced as the arity increases."
+  ([coll] (marshall-hashmap coll first second merge-like))
+  ([coll key-fn] (marshall-hashmap coll key-fn second merge-like))
+  ([coll key-fn val-fn] (marshall-hashmap coll key-fn val-fn merge-like))
+  ([coll key-fn val-fn merge-fn]
+     (apply merge-with merge-fn
+	    (map (fn [entry] {(key-fn entry) (val-fn entry)}) coll))))
+
+(defn list-to-map
+  [& coll]
+  (marshall-hashmap (partition 2 coll)))
+
+;;;Table Utilities
+;;;A table is defined to be a sequence of maps.  These functions perform
+;;;Common operations on tables.
 (defn freq
   "This function returns 1 regardless of inputs.  Very useful for determining a count with 
   pivot tables"
@@ -137,27 +163,6 @@
   ([coll grouping-fn](single-pivot coll grouping-fn freq +))
   ([coll grouping-fn & fns](map-vals first (apply pivot coll grouping-fn fns))))
 
-(defn- merge-like
-  "This is an internal function so that merge with behaves like merge.  It is the default for marshall hashmap."
-  [accum current]
-  current)
-
-(defn marshall-hashmap
-  "This is a function designed to marsh a hash-map from a collection.  Very handy to combine with a 
-  parser.  The defaults are
-
-  key-fn: first
-  val-fn: second
-  merge-fn: merge-like
-
-  They are progressively replaced as the arity increases."
-  ([coll] (marshall-hashmap coll first second merge-like))
-  ([coll key-fn] (marshall-hashmap coll key-fn second merge-like))
-  ([coll key-fn val-fn] (marshall-hashmap coll key-fn val-fn merge-like))
-  ([coll key-fn val-fn merge-fn]
-     (apply merge-with merge-fn
-	    (map (fn [entry] {(key-fn entry) (val-fn entry)}) coll))))
-
 (defn inner-style
   [left-keys right-keys]
   (intersection (set left-keys) (set right-keys)))
@@ -176,16 +181,16 @@
 
 (defn join-worker
   "This is an internal method to be used in each join function."
-  ([join-style coll-a coll-b join-fn-a] (join-worker join-style coll-a coll-b join-fn-a join-fn-a))
-  ([join-style coll-a coll-b join-fn-a join-fn-b]
-     (let [keys-a (keys (first coll-a)) ;The column names of coll-a
-	   keys-b (keys (first coll-b)) ;The column names of coll-b
-	   indexed-a (group-by join-fn-a coll-a)
-	   indexed-b (group-by join-fn-b coll-b)
-	   desired-joins (join-style (keys indexed-a) (keys indexed-b))]
+  ([join-style left-coll right-coll join-fn] (join-worker join-style left-coll right-coll join-fn join-fn))
+  ([join-style left-coll right-coll left-join-fn right-join-fn]
+     (let [keys-a (keys (first left-coll)) ;The column names of coll-a
+	   keys-b (keys (first right-coll)) ;The column names of coll-b
+	   indexed-left (group-by left-join-fn left-coll) ;indexes the coll-a using join-fn-a
+	   indexed-right (group-by right-join-fn right-coll) ;indexes the coll-b using join-fn-b
+	   desired-joins (join-style (keys indexed-left) (keys indexed-right))]
        (reduce concat (map (fn [joined-value]
-			     (for [left-side (get indexed-a joined-value [{}])
-				   right-side (get indexed-b joined-value [{}])]
+			     (for [left-side (get indexed-left joined-value [{}])
+				   right-side (get indexed-right joined-value [{}])]
 			       (merge left-side right-side)))
 			   desired-joins)))))
 
@@ -201,10 +206,14 @@ join function is provided, it is used on both the left & right hand sides.")
        ([~'left-coll ~'right-coll ~'left-join-fn ~'right-join-fn]
 	  (join-worker ~join-style ~'left-coll ~'right-coll ~'left-join-fn ~'right-join-fn)))))
 
-(defjoin inner-join inner-style "This is for performing inner joins.  The join value must exist in both lists.")
-(defjoin left-outer-join left-outer-style "This is for performing left outer joins.  The join value must exist in the left hand list.")
-(defjoin right-outer-join right-outer-style "This is for performing right outer joins.  The join value must exist in the right hand list.")
-(defjoin full-outer-join full-outer-style "This is for performing full outer joins.  The join value may exist in either list.")
+(defjoin inner-join inner-style 
+  "This is for performing inner joins.  The join value must exist in both lists.")
+(defjoin left-outer-join left-outer-style 
+  "This is for performing left outer joins.  The join value must exist in the left hand list.")
+(defjoin right-outer-join right-outer-style 
+  "This is for performing right outer joins.  The join value must exist in the right hand list.")
+(defjoin full-outer-join full-outer-style
+  "This is for performing full outer joins.  The join value may exist in either list.")
 
 (defn natural-join
   "Performs the natural join.  If there are no keys that intersect, the join is not performed."
