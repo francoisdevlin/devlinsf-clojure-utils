@@ -50,7 +50,7 @@ This behaves just like `remove`.  `pred` is applied to each entry of the hash-ma
 
 #Tranforming a map
 
-This section explores the `trans` closure, which is used to modify a tuple.
+This section explores the `trans` closure, which is used to modify a map.
 
 ##trans
 
@@ -67,7 +67,6 @@ Notice the call to trans first, and then the result it applied to test-
 map.  This is because trans generates a closure.  In this case, it 
 applies the count function to the map, and associates it with the 
 key :count. 
-
 
 	user=> ((trans "a" (comp inc #(get % "a"))) abc123) 
 	{:a 1, :b "B", :c "C"} 
@@ -121,6 +120,20 @@ This is my favorite use of trans so far
 
 	user=> @test-ref 
 	{:count 3, "a" 1, "b" 2, "c" 3}
+	
+##trans*
+
+The trans function associates its values after all the functions have been evaluated
+
+	user=> ((trans :c1 count :c2 count :c3 count) abc123)
+	{:c3 3, :c2 3, :c1 3, "a" 1, "b" 2, "c" 3}
+
+I have also defined the trans* closure, which associates the value in the map between each iteration.  I believe 
+this mimic the distinction between let & let* in CL, but I am unsure.
+	
+	user=> ((trans* :c1 count :c2 count :c3 count) abc123)
+	{:c3 5, :c2 4, :c1 3, "a" 1, "b" 2, "c" 3}
+
 	
 ##Extra stuff 
 
