@@ -90,8 +90,10 @@
 (defn map-keys
   "This function behaves like map, except that f is applied to the keys of the map, not just the entry.
    The result is a hash-map, not a seq."
-  [f coll] 
-  (apply merge (map (fn[[k v]] { (f k) v}) coll)))
+  ([f coll] 
+     (apply merge (map (fn[[k v]] { (f k) v}) coll)))
+  ([f merge-fn coll]
+     (apply merge-with (map (fn[[k v]] { (f k) v}) coll))))
 
 (defn filter-map
   "This is a specialized form of filter.  It is designed to transform the resulting seq into a hash-map."
