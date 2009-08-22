@@ -3,9 +3,6 @@
 (def & comp)
 (def p partial)
 
-(defn pa 
-  [f & args] (apply p apply f args))
-
 (defn find-params
   [& input-list]
   (if (= (class (first input-list)) java.lang.String)
@@ -44,11 +41,13 @@
                          true (vector a-map)))]
     (apply f applied-args)))
 
-(defn proj
+(defn fn-tuple
   "This is comp's twin.  comp takes a collection of functions, and applied them in series.
   proj takes a collection of functions, and applies them in parallel."
   [& coll]
-  (fn [input-map] (vec (map #(% input-map) coll))))
+  (fn[& args](map #(apply % args) coll)))
+
+(def proj fn-tuple)
 
 (defmacro defproj
   "This is a macro for naming projections"

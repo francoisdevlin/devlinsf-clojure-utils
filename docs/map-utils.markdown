@@ -15,6 +15,39 @@ I find these very handy.  This documentation reviews how to do the following thi
 * joining map lists
 * pivoting map lists
 
+#Altering a map
+All the higher order functions in clojure accept and return a seq.  It is common to transform the resulting seq into a hash map.
+These are a few functions that do this for you automatically.
+
+Let's create a map for example purposes.
+
+	user=> (def abc123 {"a" 1 "b" 2 "c" 3})
+	#'user/abc123	
+
+##map-vals
+This is like the `map` operator, but it applies `f` to every value of the hash map instead of the entry.  It returns a hash map.
+
+	user=> (map-vals #(* 2 %) abc123)
+	{"c" 6, "b" 4, "a" 2}
+
+##map-keys
+This is like the `map` operator, but it applies `f` to every key of the hash map instead of the entry.  It returns a hash map.
+
+	user=> (map-keys keyword abc123)
+	{:c 3, :b 2, :a 1}
+
+##filter-map
+This behaves just like `filter`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
+
+	user=> (filter-map (comp even? second) abc123)
+	{"b" 2}
+
+##remove-map
+This behaves just like `remove`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
+
+	user=> (remove-map (comp even? second) abc123)
+	{"a" 1, "c" 3}
+
 #Tranforming a map
 
 This section explores the `trans` closure, which is used to modify a tuple.
@@ -26,21 +59,17 @@ I defined a function trans
 	(defn trans [& params]...) 
 
 Let me show an example: 
-
-	user=> (def test-map {:a 0 :b "B" :c "C"}) 
-	#'user/test-map 
 	
-	user=> ((trans :count count) test-map) 
-	{:count 3, :a 0, :b "B", :c "C"} 
+	user=> ((trans :count count) abc123) 
+	{:count 3, "a" 1, "b" 2, "c" 3}
 	
 Notice the call to trans first, and then the result it applied to test- 
 map.  This is because trans generates a closure.  In this case, it 
 applies the count function to the map, and associates it with the 
 key :count. 
 
-Here's how I would write the incrementer: 
 
-	user=> ((trans :a (comp inc :a)) test-map) 
+	user=> ((trans "a" (comp inc #(get % "a"))) abc123) 
 	{:a 1, :b "B", :c "C"} 
 
 ##deftrans
@@ -52,13 +81,13 @@ name:
 	user=> (deftrans counter :count count) 
 	#'user/counter 
 	
-	user=> (counter test-map) 
-	{:count 3, :a 0, :b "B", :c "C"} 
+	user=> (counter abc123) 
+	{:count 3, "a" 1, "b" 2, "c" 3}
 	
 	user=> (deftrans inc-a :a (comp inc :a)) 
 	#'user/inc-a 
 
-	user=> (inc-a test-map) 
+	user=> (inc-a abc123) 
 	{:a 1, :b "B", :c "C"} 
 
 ##Using a closure
@@ -67,34 +96,31 @@ Let's revisit the fact that trans generates a closure.  We can use the
 resulting transform anywhere we'd use a function. 
 
 ### In a map
-	user=> (map (trans :count count) (repeat 5 test-map)) 
-	({:count 3, :a 0, :b "B", :c "C"} 
-	{:count 3, :a 0, :b "B", :c "C"} 
-	{:count 3, :a 0, :b "B", :c "C"} 
-	{:count 3, :a 0, :b "B", :c "C"} 
-	{:count 3, :a 0, :b "B", :c "C"}) 
 
-Or, we could use the def'd version 
+	user=> (map counter (repeat 5 abc123)) 
+	({:count 3, "a" 1, "b" 2, "c" 3}
+	 {:count 3, "a" 1, "b" 2, "c" 3}
+	 {:count 3, "a" 1, "b" 2, "c" 3}
+	 {:count 3, "a" 1, "b" 2, "c" 3}
+	 {:count 3, "a" 1, "b" 2, "c" 3})
 
-	user=> (map counter (repeat 5 test-map)) 
-	(...) 
 
 ### In a comp
-	user=> ((comp inc-a counter counter) test-map) 
-	{:count 4, :a 1, :b "B", :c "C"} 
+	user=> ((comp counter counter) abc123)
+	{:count 4, "a" 1, "b" 2, "c" 3}
 
 ### In the STM
 
 This is my favorite use of trans so far
 
-	user=> (def test-ref (ref test-map)) 
+	user=> (def test-ref (ref abc123)) 
 	#'user/test-ref 
 
-	user=> (dosync (alter test-ref inc-a)) 
-	{:a 1, :b "B", :c "C"} 
+	user=> (dosync (alter test-ref counter)) 
+	{:count 3, "a" 1, "b" 2, "c" 3}
 
 	user=> @test-ref 
-	{:a 1, :b "B", :c "C"} 
+	{:count 3, "a" 1, "b" 2, "c" 3}
 	
 ##Extra stuff 
 
@@ -143,22 +169,6 @@ They are progressively replaced as the arity increases.
 
 ###Usage
 TO DO: Add an example
-
-#Altering a map
-All the higher order functions in clojure accept and return a seq.  It is common to transform the resulting seq into a hash map.
-These are a few functions that do this for you automatically.
-
-##map-vals
-This is like the `map` operator, but it applies `f` to every value of the hash map instead of the entry.  It returns a hash map.
-
-##map-keys
-This is like the `map` operator, but it applies `f` to every key of the hash map instead of the entry.  It returns a hash map.
-
-##filter-map
-This behaves just like `filter`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
-
-##remove-map
-This behaves just like `remove`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
 
 #Joining a list of hashes
 There are many times when you need to perform a type of join on a list of data, but it cannot 

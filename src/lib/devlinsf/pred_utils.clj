@@ -1,5 +1,10 @@
 (ns lib.devlinsf.pred-utils)
 
+(defn pred->bool
+  "Evaulates a s-exp, and casts the result to a boolean"
+  [s-exp]
+  (if s-exp true false))
+
 (defn every-pred?
   "Mimics AND
    Takes a list of predicates, and composes a new predicate.  Each predicate must 
