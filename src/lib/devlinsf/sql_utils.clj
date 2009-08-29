@@ -1,5 +1,6 @@
 (ns lib.devlinsf.sql-utils
-  (:use lib.devlinsf.str-utils
+  (:use lib.devlinsf.core
+	lib.devlinsf.str-utils
 	lib.devlinsf.map-utils
 	clojure.contrib.sql))
 

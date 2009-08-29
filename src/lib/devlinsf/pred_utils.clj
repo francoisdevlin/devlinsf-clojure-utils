@@ -55,8 +55,7 @@
 	      required-map))))
 
 (defn match-map-strict
-  "This is used to create tuple filters.  The input is a map, and the output is a filter that
-   requires every key in the input map to be present"
+  "This behaves like match-map, but strictly compares the inputs."
   [& params]
   (let [required-map (if (map? (first params))
 		   (first params)
