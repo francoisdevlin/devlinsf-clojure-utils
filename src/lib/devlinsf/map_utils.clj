@@ -89,11 +89,11 @@
 
 (defn map-keys
   "This function behaves like map, except that f is applied to the keys of the map, not just the entry.
-   The result is a hash-map, not a seq."
+   The result is a hash-map, not a seq.  Also takes an optional merge-fn."
   ([f coll] 
      (apply merge (map (fn[[k v]] { (f k) v}) coll)))
   ([f merge-fn coll]
-     (apply merge-with (map (fn[[k v]] { (f k) v}) coll))))
+     (apply merge-with merge-fn (map (fn[[k v]] { (f k) v}) coll))))
 
 (defn filter-map
   "This is a specialized form of filter.  It is designed to transform the resulting seq into a hash-map."
@@ -110,6 +110,23 @@
 	 (map  
 	  #(apply hash-map %) 
 	  (remove pred a-map))))
+
+(defn filter-map-keys
+  [f a-map]
+  (filter-map (comp f first) a-map))
+
+(defn filter-map-vals
+  [f a-map]
+  (filter-map (comp f second) a-map))
+
+(defn remove-map-keys
+  [f a-map]
+  (remove-map (comp f first) a-map))
+
+(defn remove-map-vals
+  [f a-map]
+  (remove-map (comp f second) a-map))
+
 
 (defn- merge-like
   "This is an internal function so that merge with behaves like merge.  It is the default for marshall hashmap."

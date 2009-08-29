@@ -36,6 +36,16 @@ This is like the `map` operator, but it applies `f` to every key of the hash map
 	user=> (map-keys keyword abc123)
 	{:c 3, :b 2, :a 1}
 
+However, since this function modifies keys, it is possible to generate a collision
+
+	user=> (map-keys (constantly :collide) abc123)
+	{:collide 3}
+	
+To get around this, it is possible to pass an optional reduction function, that works like merge-with
+
+	user=> (map-keys (constantly :collide) + abc123)
+	{:collide 6}
+
 ##filter-map
 This behaves just like `filter`.  `pred` is applied to each entry of the hash-map, and the resulting collection is transformed into a hash map.
 
@@ -316,13 +326,102 @@ a right collection, and at least one join function.  If only one join function i
 	
 Booya.
 
+## Join Caveats
+There are currently a few kinks in the join engine.
+
+###Name Collisions
+The join engine does not handle key collisions well.   Consider the following two tables
+
+	table:purchase_orders
+	id (int)
+	state (int) ;In this case state means status
+	vendor_id (int)
+	
+	table:vendor
+	id (int)
+	street_adress (string)
+	state (string) ;In this case state mean US state
+	name (string)
+	
+When these two tables are joined, the join engine will blindly merge the maps in each row, and the state column will be nonsensical.  It is recommended
+to use map-keys to add a prefix do each key, in order to preserve row information.
+	
+### Performance
+
+These functions haven't been tuned yet.  It is recommended to use a partitioning/map/reduce scheme to join over large data sets.
+
 #Pivoting a list of hashes
 This was inspired by the pivot table feature of Excel.  It is very common to have to group, map, and reduce a list of tuples.  The pivot function is designed to handle all of the 
 skeleton code, so that the developer only has to worry about three things:
 
-1. How the data is grouped.
-2. How each hash is mapped.
-3. How each mapping is reduced.
+First, let's consider pivoting.  This is best show by example.  Suppose you have a table with the following columns
+
+	table:sales
+	order_id (int)
+	product_id (int)
+	product_cost (double)
+	quantity (double)
+
+Now, we use c.c.sql-utils to query the entire table.
+
+	;runs "SELECT * FROM SALES;"
+	(def sales-table (a-call-to-a-db ...))
+
+How would we get the total sales for each product?  Perhaps like this:
+
+	(apply merge-with + 
+  		(map 
+    		#(hash-map 
+      			(:product-id %) 
+      			(* (:product-cost %) (:quantity %)))
+    	sales-table))
+
+This involves 3 distinct operation
+
+1.  (:product-id %)
+  This is the grouping function.  It determines which product the order is associated with.
+
+2.  (* (:product-cost %) (:quantity %))
+  This is the mapping function.  It determines the value for each row.
+
+3.  +
+  This is the reduction function.  It combines every item in a group.
+
+We are now ready to define the pivot function
+
+	(defn pivot [coll grouping-fn mapping-fn reduce-fn] 
+  		(apply merge-with reduce-fn 
+    		(map 
+      			#(hash-map 
+        			(grouping-fn %) 
+        			(mapping-fn %))
+      		sales-table)))
+
+This replaces our s-exp above with
+
+	(pivot sales-table :product-id (* (:product-cost %) (:quantity %)) +)
+
+Now, it is very easy to change the groupings, mapping, or reductions.  For example, what if we wanted to count the quantity of units sold?  The pivot operation becomes
+
+	(pivot sales-table :product-id :quantity +)
+
+Very clean, IMHO.
+
+Now, suppose we wasted to count the number of times each product was ordered.  That is, how many rows is each product_id in?  We simply write the pivot operation as follows
+
+	(pivot sales-table :product-id (constantly 1) +)
+
+This frequency pivoting operation shows up often enough that I created the following alias
+
+	(def freq (constantly 1))
+	(pivot sales-table :product-id freq +)
+
+In fact, c.c.seq-util/frequencies could be written in terms of pivot
+
+	(defn frequencies
+  	[coll]
+  		(pivot coll identity freq +))
+
 
 ##freq
 `freq` is a special mapping function.  It constantly returns 1.  This is to enable counting in the pivot method.
@@ -340,4 +439,7 @@ It is designed to take an alternating list of mapping and reducing functions.  L
 The data is grouped by :owner, each row is mapped by the `(comp count :item)` function (it computes the length of item), 
 and the resulting lists are reduced by the `+` function.
 
+1. How the data is grouped.
+2. How each hash is mapped.
+3. How each mapping is reduced.
 

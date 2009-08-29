@@ -43,9 +43,9 @@
 
 (defn fn-tuple
   "This is comp's twin.  comp takes a collection of functions, and applied them in series.
-  proj takes a collection of functions, and applies them in parallel."
+  fn-tuple takes a collection of functions, and applies them in parallel."
   [& coll]
-  (fn[& args](map #(apply % args) coll)))
+  (fn[& args](vec(map #(apply % args) coll))))
 
 (def proj fn-tuple)
 
