@@ -57,24 +57,13 @@
 
 
 (defmacro deftrans
-  [name & input-keys]
-  (let [transform-symbol name
-	param-list (apply find-params input-keys)
-	doc-string? (str (apply find-doc-string input-keys))
-	input-map-symbol (gensym "input-map_")]
-    `(do
-       (defn ~transform-symbol ~doc-string? [~input-map-symbol]
-	 ((trans ~@param-list) ~input-map-symbol)))))
+  [name & body]
+  (`def ~name (trans ~@body))) 
+
 
 (defmacro deftrans*
-  [name & input-keys]
-  (let [transform-symbol name
-	param-list (apply find-params input-keys)
-	doc-string? (str (apply find-doc-string input-keys))
-	input-map-symbol (gensym "input-map_")]
-    `(do
-       (defn ~transform-symbol ~doc-string? [~input-map-symbol]
-	 ((trans* ~@param-list) ~input-map-symbol)))))
+  [name & body]
+  (`def ~name (trans* ~@body))) 
 
 (defn cat-proj
   "This function takes a collection of proj closures and returns a clojure that eagerly concatentates them."
@@ -173,7 +162,7 @@
        (let [reduce-help (fn [a-fn accum-val new-val] (a-fn accum-val new-val))
 	     mapping-fns (map first (partition 2 fns))
 	     reduction-fns (map second (partition 2 fns))
-	     mapped-tuples (map #(hash-map (grouping-fn %) ((apply proj mapping-fns) %)) coll)]
+	     mapped-tuples (map #(hash-map (grouping-fn %) ((apply fn-tuple mapping-fns) %)) coll)]
 	 (apply merge-with 
 		(fn[accum-vec new-vec] (vec (map reduce-help reduction-fns accum-vec new-vec)))
 		mapped-tuples)))))
@@ -242,7 +231,7 @@ join function is provided, it is used on both the left & right hand sides.")
 	intersect (intersection (set left-keys) (set right-keys))]
     (if (empty? intersect)
       []
-      (inner-join left-coll right-coll (apply proj intersect)))))
+      (inner-join left-coll right-coll (apply fn-tuple intersect)))))
 	
 (defn cross-join
   "DAMN CLOJURE IS AWESOME"
