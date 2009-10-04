@@ -55,20 +55,20 @@
     (.. regex (matcher string) (replaceFirst replacement))))
 
 ;;; Parsing Helpers
-(defmulti str-take (fn[parameter & remaining] (class parameter)))
+(defmulti str-take (fn[regex & remaining] (class regex)))
 
 (defmethod str-take java.util.regex.Pattern
-  ([parameter input-string]
-    (str-take parameter input-string {}))
-  ([parameter input-string options-map]
-     (let [matches (re-partition input-string parameter)]
+  ([regex input-string]
+    (str-take regex input-string {}))
+  ([regex input-string options-map]
+     (let [matches (re-partition regex input-string)]
        (if (options-map :include)
 	 (apply str (take 2 matches))
 	 (first matches)))))
 
 (defmethod str-take :default
-  [parameter input-string]
-  (apply str (take parameter input-string)))
+  [regex input-string]
+  (apply str (take regex input-string)))
 
 (defn str-rest
   [#^String input-string]
@@ -80,7 +80,7 @@
   ([parameter input-string]
     (str-drop parameter input-string {}))
   ([parameter input-string options-map]
-     (let [matches (re-partition input-string parameter)]
+     (let [matches (re-partition parameter input-string)]
        (if (options-map :include)
 	 (apply str (rest matches))
 	 (apply str (drop 2 matches))))))
@@ -98,22 +98,6 @@
   "Works like drop-while, but wraps the result into a string."
   [pred coll]
   (apply str (take-while pred coll)))
-
-(defn str-before [#^String input-string #^java.util.regex.Pattern regex]
-  (let [matches (re-partition input-string regex)]
-    (first matches)))
-
-(defn str-before-inc [#^String input-string #^java.util.regex.Pattern regex]
-  (let [matches (re-partition input-string regex)]
-    (apply str (take 2 matches))))
-
-(defn str-after [#^String input-string #^java.util.regex.Pattern regex]
-  (let [matches (re-partition input-string regex)]
-    (apply str (drop 2 matches))))
-
-(defn str-after-inc [#^String input-string #^java.util.regex.Pattern regex]
-  (let [matches (re-partition input-string regex)]
-    (apply str (rest matches))))
 
 (defn str-reverse
   "This method excepts a string and returns the reversed string as a results"

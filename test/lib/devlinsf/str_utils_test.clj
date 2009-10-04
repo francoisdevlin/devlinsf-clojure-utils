@@ -1,5 +1,5 @@
 (ns lib.devlinsf.test-contrib.str-utils
-    (:use clojure.contrib.test-is
+    (:use clojure.test
           lib.devlinsf.str-utils))
 
 (deftest test-str-reverse
@@ -35,120 +35,106 @@
   (is (= (capitalize "clojure") "Clojure")))
 
 (deftest test-titleize
-  (are
    (let [expected-string "Clojure Is Awesome"]
-     (= (titleize _1) expected-string))
-   "clojure is awesome"
-   "clojure   is  awesome"
-   "CLOJURE IS AWESOME"
-   "clojure-is-awesome"
-   "clojure- _ is---awesome"
-   "clojure_is_awesome"))
+     (are [test-value]
+	  (= (titleize test-value) expected-string)
+	  "clojure is awesome"
+	  "clojure   is  awesome"
+	  "CLOJURE IS AWESOME"
+	  "clojure-is-awesome"
+	  "clojure- _ is---awesome"
+	  "clojure_is_awesome")))
 
 (deftest test-camelize
-  (are
-   (let [expected-string "clojureIsAwesome"]
-     (= (camelize _1) expected-string))
-   "clojure is awesome"
-   "clojure   is  awesome"
-   "CLOJURE IS AWESOME"
-   "clojure-is-awesome"
-   "clojure- _ is---awesome"
-   "clojure_is_awesome"))
+  (let [expected-string "clojureIsAwesome"]
+    (are [test-value] (= (camelize test-value) expected-string)
+	 "clojure is awesome"
+	 "clojure   is  awesome"
+	 "CLOJURE IS AWESOME"
+	 "clojure-is-awesome"
+	 "clojure- _ is---awesome"
+	 "clojure_is_awesome")))
 
 (deftest test-underscore
-  (are
    (let [expected-string "clojure_is_awesome"]
-     (= (underscore _1) expected-string))
-   "clojure is awesome"
-   "clojure   is  awesome"
-   "CLOJURE IS AWESOME"
-   "clojure-is-awesome"
-   "clojure- _ is---awesome"
-   "clojure_is_awesome"))
+     (are [test-value]
+	  (= (underscore test-value) expected-string)
+	  "clojure is awesome"
+	  "clojure   is  awesome"
+	  "CLOJURE IS AWESOME"
+	  "clojure-is-awesome"
+	  "clojure- _ is---awesome"
+	  "clojure_is_awesome")))
 
 (deftest test-dasherize
-  (are
-   (let [expected-string "clojure-is-awesome"]
-     (= (dasherize _1) expected-string))
-   "clojure is awesome"
-   "clojure   is  awesome"
-   "CLOJURE IS AWESOME"
-   "clojure-is-awesome"
-   "clojure- _ is---awesome"
-   "clojure_is_awesome"))
-
-(deftest test-str-before
-  (is (= (str-before "Clojure Is Awesome" #"Is") "Clojure ")))
-
-(deftest test-str-before-inc
-  (is (= (str-before-inc "Clojure Is Awesome" #"Is") "Clojure Is")))
-
-(deftest test-str-after
-  (is (= (str-after "Clojure Is Awesome" #"Is") " Awesome")))
-
-(deftest test-str-after-inc
-  (is (= (str-after-inc "Clojure Is Awesome" #"Is") "Is Awesome")))
+  (let [expected-string "clojure-is-awesome"]
+    (are [test-value]
+	 (= (dasherize test-value) expected-string)
+	 "clojure is awesome"
+	 "clojure   is  awesome"
+	 "CLOJURE IS AWESOME"
+	 "clojure-is-awesome"
+	 "clojure- _ is---awesome"
+	 "clojure_is_awesome")))
 
 (deftest test-str-join
   (is (= (str-join " " '("A" "B")) "A B")))
 
 (deftest test-re-split-single-regex
   (let [source-string "1\t2\t3\n4\t5\t6"]
-    (is (= (re-split source-string #"\n") '("1\t2\t3" "4\t5\t6")))))
+    (is (= (split source-string #"\n") '("1\t2\t3" "4\t5\t6")))))
 
-(deftest test-re-split-single-map
-  (let [source-string "1\t2\t3\n4\t5\t6"]
-    (is (= (re-split source-string {:pattern #"\n"}) '("1\t2\t3" "4\t5\t6")))
-    (is (= (re-split source-string {:pattern #"\n" :length 1}) '("1\t2\t3")))
-    (is (= (re-split source-string {:pattern #"\n" :offset 1}) '("4\t5\t6")))
-    (is (= (re-split source-string {:pattern #"\n" :marshal-fn #(str % "\ta")}) '("1\t2\t3\ta" "4\t5\t6\ta")))
-    (is (= (re-split source-string {:pattern #"\n" :length 1 :marshal-fn #(str % "\ta")}) '("1\t2\t3\ta")))
-    ))
+;(deftest test-re-split-single-map
+;  (let [source-string "1\t2\t3\n4\t5\t6"]
+;    (are [test-pattern result]
+;	 (= (split source-string test-pattern) result)
+;	 {:pattern #"\n"} ["1\t2\t3" "4\t5\t6"]
+;	 {:pattern #"\n" :length 1} '("1\t2\t3")
+;	 {:pattern #"\n" :offset 1} '("4\t5\t6")
+;	 {:pattern #"\n" } '("1\t2\t3" "4\t5\t6")
+;	 {:pattern #"\n" :length 1 :marshal-fn #(str % "\ta")} '("1\t2\t3\ta")
+;	 )))
 
-(deftest test-re-split-single-element-list
-  (let [source-string "1\t2\t3\n4\t5\t6"]
-    (is (= (re-split source-string (list #"\n")) '("1\t2\t3" "4\t5\t6")))))
+;(deftest test-re-split-single-element-list
+;  (let [source-string "1\t2\t3\n4\t5\t6"]
+;    (is (= (re-split source-string (list #"\n")) '("1\t2\t3" "4\t5\t6")))))
 
-(deftest test-re-split-pure-list
-  (let [source-string "1\t2\t3\n4\t5\t6"]
-    (is (= (re-split source-string (list #"\n" #"\t")) '(("1" "2" "3") ("4" "5" "6"))))))
+;(deftest test-re-split-pure-list
+;  (let [source-string "1\t2\t3\n4\t5\t6"]
+;    (is (= (re-split source-string (list #"\n" #"\t")) '(("1" "2" "3") ("4" "5" "6"))))))
 
-(deftest test-re-split-mixed-list
-  (let [source-string "1\t2\t3\n4\t5\t6"]
-    (is (= (re-split source-string (list {:pattern #"\n" :length 1} #"\t")) '(("1" "2" "3"))))
-    (is (= (re-split source-string (list {:pattern #"\n" :length 1} {:pattern #"\t" :offset 1 :length 2})) '(("2" "3"))))
-    (is (= (re-split source-string (list 
-				    {:pattern #"\n" :length 1} 
-				    {:pattern #"\t" :length 2 :marshal-fn #(java.lang.Double/parseDouble %)}))
-	   '((1.0 2.0))))
-    (is (= (re-split source-string (list 
-				    {:pattern #"\n"} 
-				    {:pattern #"\t" :marshal-fn #(java.lang.Double/parseDouble %)}))
-	   '((1.0 2.0 3.0) (4.0 5.0 6.0))))
-    (is (= (map #(reduce + %) (re-split source-string (list 
-						       {:pattern #"\n"} 
-						       {:pattern #"\t" :marshal-fn #(java.lang.Double/parseDouble %)})))
-	   '(6.0 15.0)))
-    (is (= (reduce +(map #(reduce + %) (re-split source-string (list 
-								{:pattern #"\n"} 
-								{:pattern #"\t" :marshal-fn #(java.lang.Double/parseDouble %)}))))
-	   '21.0))
-    ))
+;(deftest test-re-split-mixed-list
+;  (let [source-string "1\t2\t3\n4\t5\t6"]
+;    (is (= (re-split source-string (list {:pattern #"\n" :length 1} #"\t")) '(("1" "2" "3"))))
+;    (is (= (re-split source-string (list {:pattern #"\n" :length 1} {:pattern #"\t" :offset 1 :length 2})) '(("2" "3"))))
+;    (is (= (re-split source-string (list 
+;				    {:pattern #"\n" :length 1} 
+;				    {:pattern #"\t" :length 2 :marshal-fn #(java.lang.Double/parseDouble %)}))
+;	   '((1.0 2.0))))
+;    (is (= (re-split source-string (list 
+;				    {:pattern #"\n"} 
+;				    {:pattern #"\t" :marshal-fn #(java.lang.Double/parseDouble %)}))
+;	   '((1.0 2.0 3.0) (4.0 5.0 6.0))))
+;    (is (= (map #(reduce + %) (re-split source-string (list 
+;						       {:pattern #"\n"} 
+;						       {:pattern #"\t" :marshal-fn #(java.lang.Double/parseDouble %)})))
+;	   '(6.0 15.0)))
+;    (is (= (reduce +(map #(reduce + %) (re-split source-string (list 
+;								{:pattern #"\n"} 
+;								{:pattern #"\t" :marshal-fn #(java.lang.Double/parseDouble %)}))))
+;	   '21.0))
+;    ))
 
 (deftest test-re-partition
-  (is (= (re-partition "Clojure Is Awesome" #"\s+") '("Clojure" " " "Is" " " "Awesome"))))
+  (is (= (re-partition #"\s+" "Clojure Is Awesome") '("Clojure" " " "Is" " " "Awesome"))))
 
-(deftest test-re-gsub
+(deftest test-gsub
   (let [source-string "1\t2\t3\n4\t5\t6"]
-    (is (= (re-gsub source-string #"\s+" " ") "1 2 3 4 5 6"))
-    (is (= (re-gsub source-string '((#"\s+" " "))) "1 2 3 4 5 6"))
-    (is (= (re-gsub source-string '((#"\s+" " ") (#"\d" "D"))) "D D D D D D"))))
+    (is (= (gsub #"\s+" " " source-string) "1 2 3 4 5 6"))))
     
-(deftest test-re-sub
+(deftest test-sub
   (let [source-string "1 2 3 4 5 6"]
-    (is (= (re-sub source-string #"\d" "D") "D 2 3 4 5 6"))
-    (is (= (re-sub source-string '((#"\d" "D") (#"\d" "E"))) "D E 3 4 5 6"))))
+    (is (= (sub #"\d" "D" source-string) "D 2 3 4 5 6"))))
 
 (deftest test-swap-letters
   (are (= (swap-letters _1) _2)
@@ -171,7 +157,8 @@
 
 ;;;The code for the test-pluralize function was based on functions contributed by Brian Doyle 
 (deftest test-pluralize 
-  (are (= _1 (pluralize _2))
+  (are [plural single] 
+       (= plural (pluralize single))
        "foos" "foo"
        "beaches" "beach"
        "babies" "baby"
