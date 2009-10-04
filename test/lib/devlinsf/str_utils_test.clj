@@ -146,14 +146,15 @@
 
 ;;;The code for the test-singularize function was based on functions contributed by Brian Doyle
 (deftest test-singularize 
-  (are (= _1 (singularize _2))
-    "foo" "foos"
-    "baby" "babies"
-    "beach" "beaches"
-    "box" "boxes"
-    "bush" "bushes"
-    "bus" "buses"
-    "stop" "stops"))
+  (are [single plural]
+       (= single (singularize plural))
+       "foo" "foos"
+       "baby" "babies"
+       "beach" "beaches"
+       "box" "boxes"
+       "bush" "bushes"
+       "bus" "buses"
+       "stop" "stops"))
 
 ;;;The code for the test-pluralize function was based on functions contributed by Brian Doyle 
 (deftest test-pluralize 
@@ -168,21 +169,22 @@
        "stops" "stop"))
 
 (deftest test-str-rest 
-  (are (= _1 (str-rest _2))
-       "beer" (str :beer)
-       "eer" "Beer"
-       "" "B"
+  (are [test-value result] 
+       (= result (str-rest test-value))
+       (str :beer) "beer"
+       "Beer" "eer"
+       "B" "" 
        "" ""
-       "" '()))
+       [] ""))
 
 (deftest test-str-take
   (let [source-string "Be er"]
-    (are 
-     (= (str-take _1 source-string) _2)
-     2 "Be"
-     10 "Be er"
-     #"\r" "Be er"
-     #"\s+" "Be")
+    (are [take-value result]
+	 (= (str-take take-value source-string) result)
+	 2 "Be"
+	 10 "Be er"
+	 #"\r" "Be er"
+	 #"\s+" "Be")
     (is (= (str-take #"\s+" source-string {:include true}) "Be "))
     (is (= (str-take #"\s+" source-string {:include false}) "Be"))
     (is (= (str-take 2 ["B" "e" "e" "r"]) "Be"))
@@ -191,7 +193,8 @@
 
 (deftest test-str-drop
   (let [source-string "Be er"]
-    (are (= (str-drop _1 source-string) _2)
+    (are [drop-value result]
+	 (= (str-drop drop-value source-string) result)
 	 2 " er"
 	 10 ""
 	 #"\r" ""

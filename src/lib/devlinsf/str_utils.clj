@@ -217,7 +217,7 @@
     (cond
       (.endsWith lc "y") (sub #"y$" "ies" lc)
       (some #(.endsWith lc %) ["s" "z" "ch" "sh" "x"]) (str lc "es")
-      :else (str "s" lc))))
+      :else (str lc "s"))))
 
 (defn swap-letters
   [#^String input-string]
