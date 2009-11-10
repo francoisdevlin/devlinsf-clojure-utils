@@ -1,6 +1,6 @@
-(ns lib.devlinsf.test-contrib.str-utils
+(ns lib.sfd.test-contrib.str-utils
     (:use clojure.test
-          lib.devlinsf.str-utils))
+          lib.sfd.str-utils))
 
 (deftest test-str-reverse
   (is (= (str-reverse "Clojure") "erujolC")))

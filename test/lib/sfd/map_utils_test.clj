@@ -1,7 +1,7 @@
-(ns lib.devlinsf.test-contrib.map-utils
+(ns lib.sfd.test-contrib.map-utils
     (:use clojure.contrib.test-is
-          lib.devlinsf.str-utils
-	  lib.devlinsf.map-utils))
+          lib.sfd.str-utils
+	  lib.sfd.map-utils))
 
 (def test-left [{:name "Sean" :age 27}
 		{:name "Ross" :age 27}

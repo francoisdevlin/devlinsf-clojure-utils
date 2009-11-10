@@ -1,6 +1,6 @@
-(ns lib.devlinsf.test-contrib.sql-utils
+(ns lib.sfd.test-contrib.sql-utils
     (:use clojure.contrib.test-is
-          lib.devlinsf.sql-utils))
+          lib.sfd.sql-utils))
 
 (deftest test-keyword-id
   (is (= (where-clause {:id 1}) "id=1")))
