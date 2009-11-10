@@ -1,4 +1,4 @@
-(ns lib.devlinsf.sql-utils
+(ns lib.sfd.sql-utils
   (:use lib.devlinsf.core
 	lib.devlinsf.str-utils
 	lib.devlinsf.map-utils

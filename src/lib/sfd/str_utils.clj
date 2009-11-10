@@ -1,4 +1,4 @@
-(ns lib.devlinsf.str-utils)
+(ns lib.sfd.str-utils)
 
 ;;; String Merging & Slicing
 

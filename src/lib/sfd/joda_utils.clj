@@ -1,6 +1,6 @@
-(ns lib.devlinsf.joda-utils
+(ns lib.sfd.joda-utils
   (:use clojure.contrib.str-utils
-	lib.devlinsf.date-utils)
+	lib.sfd.date-utils)
   (:import (org.joda.time DateTime
 			  Instant
 			  Duration)))

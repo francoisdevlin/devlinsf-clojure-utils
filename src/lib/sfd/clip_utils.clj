@@ -1,4 +1,4 @@
-(ns lib.devlinsf.clip-utils)
+(ns lib.sfd.clip-utils)
   ;(:import (java.awt.datatransfer Clipboard 
 ;				  ClipboardOwner
 ;				  Transferable

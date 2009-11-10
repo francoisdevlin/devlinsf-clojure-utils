@@ -1,30 +1,30 @@
 <project name="clojure-contrib" default="jar">
-
+ 
   <description>
     Pack all clojure-contrib sources into a JAR. Compile those that can
     be compiled standalone if the clojure.jar property points us to
     clojure.jar .
   </description>
-
+ 
   <property name="test" location="test"/>
   <property name="src" location="src"/>
   <property name="build" location="classes"/>
-
+ 
   <available property="hasclojure" file="${clojure.jar}"/>
-
+ 
   <!-- The JAR file to create. -->
   <property name="jarfile" location="devlinsf-utils.jar"/>
-
+ 
   <target name="init">
     <tstamp/>
     <mkdir dir="${build}"/>
   </target>
-
+ 
   <target name="clean" description="Remove generated files and directories.">
     <delete file="${jarfile}"/>
     <delete dir="${build}"/>
   </target>
-
+ 
   <target name="test_clojure"
 	  description = "Run clojure tests"
 	  if="hasclojure">
@@ -38,7 +38,7 @@
       <arg value="(require '(clojure.contrib [test-clojure :as main])) (main/run)"/>
     </java>
   </target>
-
+ 
   <target name="test_contrib"
 	  description = "Run contrib tests"
 	  if="hasclojure">
@@ -51,10 +51,10 @@
       <arg value="src/clojure/contrib/test_contrib.clj"/>
     </java>
   </target>
-
+ 
   <target name="test" depends="test_clojure,test_contrib"
 	  description="Run all tests"/>
-
+ 
   <target name="compile_clojure" depends="init"
           description="Compile Clojure sources."
           if="hasclojure">
@@ -90,7 +90,7 @@
       <arg value="lib.devlinsf.sql-utils-test"/>
     </java>
   </target>
-
+ 
   <target name="jar" description="Create jar file." depends="compile_clojure">
     <jar jarfile="${jarfile}">
       <fileset file="epl-v10.html"/>
@@ -101,5 +101,5 @@
       </manifest>
     </jar>
   </target>
-
+ 
 </project>

@@ -1,4 +1,4 @@
-(ns lib.devlinsf.date-utils
+(ns lib.sfd.date-utils
   (:use clojure.contrib.str-utils))
 
 (def field-consts

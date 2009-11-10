@@ -1,4 +1,4 @@
-(ns lib.devlinsf.pred-utils)
+(ns lib.sfd.pred-utils)
 
 (defn pred->bool
   "Evaulates a s-exp, and casts the result to a boolean"

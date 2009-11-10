@@ -1,4 +1,4 @@
-(ns lib.devlinsf.file-utils
+(ns lib.sfd.file-utils
   (:import java.io.File))
 
 (def *fs* File/separator)

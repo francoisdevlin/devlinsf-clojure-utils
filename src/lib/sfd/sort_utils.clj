@@ -1,4 +1,4 @@
-(ns lib.devlinsf.sort-utils)
+(ns lib.sfd.sort-utils)
 
 (defn chain-comp
   "This takes a list of comparator functions, and chains them together.  

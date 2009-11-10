@@ -1,4 +1,4 @@
-(ns lib.devlinsf.core)
+(ns lib.sfd.core)
 
 (def & comp)
 (def p partial)

@@ -1,7 +1,7 @@
-(ns lib.devlinsf.model-utils
-  (:use lib.devlinsf.str-utils
-	lib.devlinsf.sql-utils
-	lib.devlinsf.map-utils
+(ns lib.sfd.model-utils
+  (:use lib.sfd.str-utils
+	lib.sfd.sql-utils
+	lib.sfd.map-utils
 	clojure.contrib.with-ns)
   (:require [clojure.contrib [sql :as sql]]))
 
