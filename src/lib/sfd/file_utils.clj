@@ -4,6 +4,8 @@
 (def *fs* File/separator)
 (def *ps* File/pathSeparator)
 
+(def *user-dir* (System/getProperty "user.dir"))
+
 (defmulti to-file class)
 
 (defmethod to-file String
@@ -15,6 +17,7 @@
 
 ;;File Navigation
 (defn filecat
+  "A tool for creating file paths.  Platform independent."
   [& args]
   (apply str (interpose *fs* args)))
 
