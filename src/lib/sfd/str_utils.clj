@@ -82,7 +82,7 @@
 
 (defmethod str-take-worker java.util.regex.Pattern
   ([regex input-string]
-    (str-take regex input-string {}))
+    (str-take-worker regex input-string {}))
   ([regex input-string options-map]
      (let [matches (re-partition regex input-string)]
        (if (options-map :include)
@@ -107,7 +107,7 @@
 
 (defmethod str-drop-worker java.util.regex.Pattern
   ([parameter input-string]
-    (str-drop parameter input-string {}))
+    (str-drop-worker parameter input-string {}))
   ([parameter input-string options-map]
      (let [matches (re-partition parameter input-string)]
        (if (options-map :include)
@@ -129,7 +129,7 @@
   (apply str (drop-while pred coll)))
  
 (defn str-take-while
-  "Works like drop-while, but wraps the result into a string."
+  "Works like take-while, but wraps the result into a string."
   [pred coll]
   (apply str (take-while pred coll)))
 
