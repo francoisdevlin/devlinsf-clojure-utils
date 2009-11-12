@@ -26,17 +26,16 @@
       (defn ~sym ~versatile-doc ~binding (modify ~inline-f ~(last binding))))))
 
 ;;; String Merging & Slicing
-
-;  "Splits the string into a lazy sequence of substrings, alternating
-;  between substrings that match the patthern and the substrings
-;  between the matches.  The sequence always starts with the substring
-;  before the first match, or an empty string if the beginning of the
-;  string matches.
-;
-;  For example: (re-partition \"abc123def\" #\"[a-z]+\")
-;
-;  Returns: (\"\" \"abc\" \"123\" \"def\")"
 (defn re-partition
+"Splits the string into a lazy sequence of substrings, alternating
+  between substrings that match the pattern and the substrings
+  between the matches.  The sequence always starts with the substring
+  before the first match, or an empty string if the beginning of the
+  string matches.
+
+  For example: (re-partition \"abc123def\" #\"[a-z]+\")
+
+  Returns: (\"\" \"abc\" \"123\" \"def\")"
   [#^java.util.regex.Pattern re #^String string]
   (let [m (re-matcher re string)]
     ((fn step [prevend]
@@ -295,30 +294,6 @@ english speakers."
   ([#^String input-string replacement-seq]
      (apply concat (swap-letters input-string)
 	    (map #(try-letter % input-string) replacement-seq))))
-
-
-;;; Escapees
-
-;(defn sql-escape[x])
-
-;(defn html-escape
-;  "This function helps prevent XSS attacks, by disallowing certain charecters"
-;  [#^String input-string]
-;  (let [escaped-charecters '((#"&" " &amp; ")
-;			  (#"<" " &gt; ")
-;			  (#">" " &lt; ")
-;			  (#"\"" " &quot; "))]
-;    (gsub input-string escaped-charecters)))
-
-;(defn javascript-escape
-;  "This function helps prevent XSS attacks, by disallowing certain charecters"
-;  [#^String input-string]
-;  (let [escaped-charecters '((#"&" "\u0026")
-;			  (#"<" "\u003C")
-;			  (#">" "\u003E"))]
-;    (re-gsub input-string escaped-charecters)))
-
-;(defn pdf-escape[x])
 
 ;;;Parsers
 (defn parse-double
