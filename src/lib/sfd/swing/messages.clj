@@ -7,27 +7,27 @@
 
 (defn plain-message
   "Creates a dialog that shows a plain message.  Will block the thread it is in.  Returns nil."
-  ([message] (show-message message nil))
+  ([message] (plain-message message nil))
   ([message title] ((messenger-factory JOptionPane/PLAIN_MESSAGE) message title)))
 
 (defn info-message
   "Creates a dialog that shows an informational message.  Will block the thread it is in.  Returns nil."
-  ([message] (show-message message nil))
+  ([message] (info-message message nil))
   ([message title] ((messenger-factory JOptionPane/INFORMATION_MESSAGE) message title)))
 
 (defn warning-message
   "Creates a dialog that shows a warning message.  Will block the thread it is in.  Returns nil."
-  ([message] (show-message message nil))
+  ([message] (warning-message message nil))
   ([message title] ((messenger-factory JOptionPane/WARNING_MESSAGE) message title)))
 
 (defn error-message
   "Creates a dialog that shows an error message.  Will block the thread it is in.  Returns nil."
-  ([message] (show-message message nil))
+  ([message] (error-message message nil))
   ([message title] ((messenger-factory JOptionPane/ERROR_MESSAGE) message title)))
 
 (defn question-message
   "Creates a dialog that shows a question message.  Will block the thread it is in.  Returns nil."
-  ([message] (show-message message nil))
+  ([message] (question-message message nil))
   ([message title] ((messenger-factory JOptionPane/QUESTION_MESSAGE) message title)))
 
 ;A map to turn integers into keywords

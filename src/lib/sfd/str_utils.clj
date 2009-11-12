@@ -1,5 +1,30 @@
 (ns lib.sfd.str-utils)
 
+(defmulti modify (fn [& args] (class (second args))))
+
+(defmethod modify clojure.lang.Keyword
+  [f k]
+  (keyword (f (name k))))
+
+(defmethod modify clojure.lang.Symbol
+  [f s]
+  (symbol (f (name s))))
+
+(defmethod modify :default
+  [f s]
+  (f s))
+
+(defmacro defmod [sym docstring binding body]
+  (let [star-sym (symbol (str sym "*"))
+	base-doc (str "This is the base function designed to work on a string. \n\n" docstring)
+	versatile-doc (str "multifn - This is the wrapped multimethod designed to work on strings, keywords or symbols. \n\n  " docstring)
+	inline-f (if (= (count binding) 1)
+		   star-sym
+		   (concat (list 'partial star-sym) (butlast binding)))]
+    `(do
+      (defn ~star-sym ~base-doc ~binding ~body)
+      (defn ~sym ~versatile-doc ~binding (modify ~inline-f ~(last binding))))))
+
 ;;; String Merging & Slicing
 
 ;  "Splits the string into a lazy sequence of substrings, alternating
@@ -33,7 +58,8 @@
 	 '())))
    (re-partition pattern input-string)))
 
-(defn gsub
+(defmod gsub
+  "Takes a pattern and replacement string, replaces every occurance in string."
   [#^java.util.regex.Pattern regex #^String replacement #^String string]
   (if (ifn? replacement)
     (let [parts (vec (re-partition regex string))]
@@ -43,7 +69,8 @@
                      parts (range 1 (count parts) 2))))
     (.. regex (matcher string) (replaceAll replacement))))
 
-(defn sub
+(defmod sub
+  "Takes a pattern and replacement string, replaces the first occurance in string."
   [#^java.util.regex.Pattern regex #^String replacement #^String string]
   (if (ifn? replacement)
     (let [m (re-matcher regex string)]
@@ -55,9 +82,9 @@
     (.. regex (matcher string) (replaceFirst replacement))))
 
 ;;; Parsing Helpers
-(defmulti str-take (fn[regex & remaining] (class regex)))
+(defmulti str-take-worker (fn[regex & remaining] (class regex)))
 
-(defmethod str-take java.util.regex.Pattern
+(defmethod str-take-worker java.util.regex.Pattern
   ([regex input-string]
     (str-take regex input-string {}))
   ([regex input-string options-map]
@@ -66,17 +93,23 @@
 	 (apply str (take 2 matches))
 	 (first matches)))))
 
-(defmethod str-take :default
-  [regex input-string]
-  (apply str (take regex input-string)))
+(defmethod str-take-worker :default
+  [n input-string]
+  (apply str (take n input-string)))
 
-(defn str-rest
+(defmod str-take
+  "str-take can take two forms of inputs in the limiter.  If limiter is set to an integer, it behave just like take, while wrapping the result in a string (sorta).  If limiter is set to a regex, take returns the string before the match."
+  [limiter input]
+  (str-take-worker limiter input))
+
+(defmod str-rest
+  "Returns the rest of the string"
   [#^String input-string]
   (apply str (rest input-string)))
 
-(defmulti str-drop (fn[parameter & remaining] (class parameter)))
+(defmulti str-drop-worker (fn[parameter & remaining] (class parameter)))
 
-(defmethod str-drop java.util.regex.Pattern
+(defmethod str-drop-worker java.util.regex.Pattern
   ([parameter input-string]
     (str-drop parameter input-string {}))
   ([parameter input-string options-map]
@@ -85,9 +118,14 @@
 	 (apply str (rest matches))
 	 (apply str (drop 2 matches))))))
 
-(defmethod str-drop :default
-  [parameter input-string]
-  (apply str (drop parameter input-string)))
+(defmethod str-drop-worker :default
+  [n input-string]
+  (apply str (drop n input-string)))
+
+(defmod str-drop
+  "str-drop can take two forms of inputs in the limiter.  If limiter is set to an integer, it behave just like drop, while wrapping the result in a string (sorta).  If limiter is set to a regex, drop returns the string after the match."
+  [limiter input]
+  (str-drop-worker limiter input))
 
 (defn str-drop-while
   "Works like drop-while, but wraps the result into a string."
@@ -99,7 +137,7 @@
   [pred coll]
   (apply str (take-while pred coll)))
 
-(defn str-reverse
+(defmod str-reverse
   "This method excepts a string and returns the reversed string as a results"
   [#^String input-string]
   (apply str (reverse input-string)))
@@ -112,81 +150,83 @@
 
 ;;; Inflectors
 ;;; These methods only take the input string.
-(defn upcase 
+(defmod upcase
   "Converts the entire string to upper case"
   [#^String input-string]
   (. input-string toUpperCase))
 
-(defn downcase 
+(defmod downcase
   "Converts the entire string to lower case"
   [#^String input-string]
   (. input-string toLowerCase))
 
-(defn trim
+(defmod trim
   "Shortcut for String.trim"
   [#^String input-string]
   (. input-string trim))
 
-(defn strip
+(defmod strip
   "Alias for trim, like Ruby."
   [#^String input-string]
   (trim input-string))
 
-(defn ltrim
+(defmod ltrim
   "This method chops all of the leading whitespace."
   [#^String input-string]
   (str-drop #"\s+" input-string))
 
-(defn rtrim
+(defmod rtrim
   "This method chops all of the trailing whitespace."
   [#^String input-string]
   (str-reverse (str-drop #"\s+" (str-reverse input-string))))
 
-(defn chop
+(defmod chop
   "Removes the last character of string."
   [#^String input-string]
   (subs input-string 0 (dec (count input-string))))
 
-(defn chomp
+(defmod chomp
   "Removes all trailing newline \\n or return \\r characters from
   string.  Note: String.trim() is similar and faster."
   [#^String input-string]
   (str-take #"[\r\n]+" input-string))
 
-(defn capitalize
+(defmod capitalize
   "This method turns a string into a capitalized version, Xxxx"
   [#^String input-string]
   (str-join "" (list 
 		(upcase (str (first input-string)))
 		(downcase (str-rest input-string)))))
 
-(defn titleize
+(defmod titleize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is capitalized, and the result is joined with \" \"."
   [#^String input-string]
   (let [words (split #"[\s_-]+" input-string)]
     (str-join " " (map capitalize words))))
 
-(defn camelize
+(defmod camelize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  The first word is captialized, and the rest are downcased, and the result is joined with \"\"."
   [#^String input-string]
   (let [words (split #"[\s_-]+" input-string)]
     (str-join "" (cons (downcase (first words)) (map capitalize (rest words))))))
 
-(defn dasherize
+(defmod dasherize
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is downcased, and the result is joined with \"-\"."
   [#^String input-string]
   (let [words (split #"[\s_-]+" input-string)]
     (str-join "-" (map downcase words))))
 
-(defn underscore
+(defmod underscore
   "This method takes an input string, splits it across whitespace, dashes, and underscores.  Each word is downcased, and the result is joined with \"_\"."
   [#^String input-string]
   (let [words (split #"[\s_-]+" input-string)]
     (str-join "_" (map downcase words))))
 
-;"This method takes a string and gets it ready to become a keyword."
-(def keywordize
-  (comp str trim dasherize (partial gsub #"[\(\)\"\'\:\#]" "") downcase))
+(defmod keywordize
+  "This method takes a string and gets it ready to become a keyword."
+  [#^String input-string]
+  ((comp str trim dasherize (partial gsub #"[\(\)\"\'\:\#]" "") downcase)
+   input-string))
 
 (defn str->keyword
   "This method is the same as (keyword (keywordize input-string))."
@@ -200,7 +240,7 @@
 (def blank? (comp zero? count))
 
 ;;;The code for the singularize function was based on functions contributed by Brian Doyle and John Hume
-(defn singularize
+(defmod singularize
   "This is an early attempt at Rails' singulaize method."
   [#^String input-string]
   (let [lc (downcase input-string)]
@@ -208,9 +248,9 @@
       (.endsWith lc "ies") (sub #"ies$" "y" lc)
       (.endsWith lc "es") (sub #"es$" "" lc)
       :else (sub #"s$" "" lc))))
- 
+
 ;;;The code for the pluralize function was based on functions contributed by Brian Doyle and John Hume
-(defn pluralize
+(defmod pluralize
   "This is an early attempt at Rails' pluralize method."
   [#^String input-string]
   (let [lc (downcase input-string)]

@@ -1,22 +1,9 @@
-(ns lib.sfd.map-utils
-  (:use lib.sfd.str-utils
-	lib.sfd.core
-	clojure.contrib.seq-utils
-	clojure.set))
-
-(defn filter-nil-vals
-  [input-map]
-  (apply merge {} 
-	 (map #(apply hash-map %) 
-	      (filter second input-map))))
-
-(defn render-map
-  [input-map kv-delimiter entry-delimiter]
-  (str-join entry-delimiter 
-	    (map (partial str-join kv-delimiter) input-map)))
+(ns lib.sfd.map-utils)
 
 (defn trans
-  "This is similar to CL's let, the map does not have any information assoc'd until the end."
+  "trans(form) is used to assoc values to an existing map.  Specifically, when the new values depend on values already existing in the map.
+
+  This is similar to CL's let, the map does not have any information assoc'd until the end."
   [& params]
   (fn[a-map]
     (reduce 
@@ -28,7 +15,9 @@
      (partition 2 params))))
 
 (defn trans*
-  "This is similar to CL's let*, the map gets the keys assoc'd as it goes."
+  "trans(form) is used to assoc values to an existing map.  Specifically, when the new values depend on values already existing in the map.
+
+  This is similar to CL's let*, the map gets the keys assoc'd as it goes."
   [& params]
   (fn[a-map]
     (reduce 
@@ -39,13 +28,14 @@
      a-map
      (partition 2 params))))
 
-
 (defmacro deftrans
+  "This macro is analogous to defn.  It creates a trans closure based on body and binds the result to name."
   [name & body]
   `(def ~name (trans ~@body))) 
 
 
 (defmacro deftrans*
+  "This macro is analogous to defn.  It creates a trans* closure based on body and binds the result to name."
   [name & body]
   `(def ~name (trans* ~@body))) 
 
@@ -62,7 +52,7 @@
 
 (defn map-keys
   "This function behaves like map, except that f is applied to the keys of the map, not just the entry.
-   The result is a hash-map, not a seq.  Also takes an optional merge-fn."
+   The result is a hash-map, not a seq.  Also takes an optional merge-fn in the event that a collision is generated."
   ([f coll] 
      (apply merge (map (fn[[k v]] { (f k) v}) coll)))
   ([f merge-fn coll]
@@ -107,7 +97,7 @@
   current)
 
 (defn marshall-hashmap
-  "This is a function designed to marsh a hash-map from a collection.  Very handy to combine with a 
+  "This is a function designed to marshall a hash-map from a collection.  Very handy to combine with a 
   parser.  The defaults are
 
   key-fn: first
