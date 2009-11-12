@@ -3,16 +3,13 @@
 (defmulti modify (fn [& args] (class (second args))))
 
 (defmethod modify clojure.lang.Keyword
-  [f k]
-  (keyword (f (name k))))
+  [f k] (keyword (f (name k))))
 
 (defmethod modify clojure.lang.Symbol
-  [f s]
-  (symbol (f (name s))))
+  [f s] (symbol (f (name s))))
 
 (defmethod modify :default
-  [f s]
-  (f s))
+  [f s] (f s))
 
 (defmacro defmod [sym docstring binding body]
   (let [star-sym (symbol (str sym "*"))
@@ -236,7 +233,7 @@
 
 (def split-lines (partial split #"[\r\n]"))
 
-(def blank? (comp zero? count))
+(def blank? (comp zero? count trim))
 
 ;;;The code for the singularize function was based on functions contributed by Brian Doyle and John Hume
 (defmod singularize
