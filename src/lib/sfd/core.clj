@@ -59,3 +59,50 @@
     `(do
        (defn ~proj-symbol ~doc-string? [~input-map-symbol]
 	 ((proj ~@param-list) ~input-map-symbol)))))
+
+(defn visitor
+  "Used to implement visitor patterns.  (first (args)) is modified by the visitor function"
+  [visit-fn return-fn]
+  (fn [f & args]
+    (return-fn
+     (apply f (visit-fn (first args)) (rest args)))))
+
+(defn visitor*
+  [visit-fn return-fn]
+  (fn [f & args]
+    (let [r-args (reverse args)
+	  mod-args (conj (rest r-args) (visit-fn (first r-args)))]
+    (return-fn
+     (apply f (reverse mod-args))))))
+
+(def visit-keyword (visitor name keyword))
+(def visit-symbol (visitor name symbol))
+
+(def keys-entry
+     (visitor 
+      #(proj (& % key) val)
+      (p into {})))
+
+(def vals-entry
+     (visitor 
+      #(proj key (& % val))
+      (p into {})))
+
+(def keys-pred
+     (visitor 
+      #(& % key)
+      (p into {})))
+
+(def vals-pred
+     (visitor 
+      #(& % val)
+      (p into {})))
+
+(defn keys-entry-merge 
+  "Like visit keys, but takes a merge function to resolve keys collisions."
+  [merge-fn & args]
+  (apply (visitor 
+	  #(proj (& % key) val) 
+	  (& (p apply merge-with merge-fn)
+	     (p map (p apply hash-map))))
+	 args))

@@ -115,3 +115,20 @@
 (defn list-to-map
   [& coll]
   (marshall-hashmap (partition 2 coll)))
+
+(defn read-map
+  "Designed to turn a java.util.Map into a Clojure map."
+  [a-map]
+  (into {}
+	 (map 
+	  #(hash-map (.getKey %) (.getValue %))
+	  (seq a-map))))
+
+(defn hash-map*
+  ([] (hash-map))
+  ([& keyvals]
+     (if (= (count keyvals) 1)
+       (if (instance? java.util.Map (first keyvals))
+	 (read-map (first keyvals))
+	 (apply hash-map keyvals)) ;throws proper exception
+       (apply hash-map keyvals))))

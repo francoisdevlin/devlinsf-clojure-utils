@@ -1,5 +1,31 @@
 (ns lib.sfd.str-utils)
 
+(defmulti ->str class)
+
+(defmethod ->str clojure.lang.Keyword
+  [s] (name s))
+
+(defmethod ->str clojure.lang.Symbol
+  [s] (name s))
+
+(defmethod ->str :default
+  [s] (str s))
+
+(defmulti m-str (fn [& args] (class (first args))))
+
+(defmethod m-str clojure.lang.Keyword
+  [& args] 
+  (keyword (apply str (map ->str args))))
+
+(defmethod m-str clojure.lang.Symbol
+  [& args] 
+  (symbol (apply str (map ->str args))))
+
+(defmethod m-str :default
+  [& args] 
+  (apply str (map ->str args)))
+
+
 (defmulti modify (fn [& args] (class (second args))))
 
 (defmethod modify clojure.lang.Keyword
