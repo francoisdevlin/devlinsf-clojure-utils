@@ -1,4 +1,5 @@
-(ns lib.sfd.map-utils)
+(ns lib.sfd.map-utils
+  (:use lib.sfd.core))
 
 (defn trans
   "trans(form) is used to assoc values to an existing map.  Specifically, when the new values depend on values already existing in the map.
@@ -116,19 +117,116 @@
   [& coll]
   (marshall-hashmap (partition 2 coll)))
 
-(defn read-map
-  "Designed to turn a java.util.Map into a Clojure map."
-  [a-map]
-  (into {}
-	 (map 
-	  #(hash-map (.getKey %) (.getValue %))
-	  (seq a-map))))
+(def hash-builder (partial into {}))
 
-(defn hash-map*
-  ([] (hash-map))
-  ([& keyvals]
-     (if (= (count keyvals) 1)
-       (if (instance? java.util.Map (first keyvals))
-	 (read-map (first keyvals))
-	 (apply hash-map keyvals)) ;throws proper exception
-       (apply hash-map keyvals))))
+(defn kp [f] (comp f key)) 
+(defn vp [f] (comp f val))
+(defn ke [f] (juxt (comp f key) val))
+(defn ve [f] (juxt key (comp f key)))
+
+(def #^{:doc "Key predicate" 
+	 :arglists '([pred-fn pred coll])} 
+     hash-keys-pred (visitor kp hash-builder))
+
+(def #^{:doc "Val predicate" 
+	:arglists '([pred-fn pred coll])} 
+     hash-vals-pred (visitor vp hash-builder))
+
+(def #^{:doc "Key mapping fn" 
+	:arglists '([map-fn f coll])} 
+     hash-keys-entry
+     (visitor ke hash-builder))
+
+(def #^{:doc "Val mapping fn" 
+	:arglists '([map-fn f coll])} 
+     hash-vals-entry
+     (visitor ve hash-builder))
+
+(defn hash-keys-entry-merge 
+  "Like visit keys, but takes a merge function to resolve keys collisions."
+  [merge-fn & args]
+  (apply (visitor 
+	  ke
+	  (& (p apply merge-with merge-fn)
+	     (p map (p apply hash-map))))
+	 args))
+
+(defn- sort-builder
+  [args]
+  (let [c (.comparator (second args))]
+    (fn [coll]
+      (apply sorted-map-by c
+	     (apply concat coll)))))
+
+(defn sort-keys-pred
+  [f & args]
+  (apply
+   (visitor kp (sort-builder args))
+   f args))
+
+(defn sort-vals-pred
+  [f & args]
+  (apply
+   (visitor vp (sort-builder args))
+   f args))
+
+(defn sort-keys-entry
+  [f & args]
+  (apply
+   (visitor ke (sort-builder args))
+   f args))
+
+(defn sort-vals-entry
+  [f & args]
+  (apply
+   (visitor ve (sort-builder args))
+   f args))
+
+(defn sort-keys-entry-merge 
+  "Like visit keys, but takes a merge function to resolve keys collisions."
+  [merge-fn & args]
+  (apply (visitor 
+	  ke
+	  (comp (sort-builder (rest args))
+		(partial apply merge-with merge-fn)
+		(partial map (partial apply hash-map))))
+	 args))
+
+(defn- sort-test
+  [coll]
+  (sorted? (second coll)))
+
+(defn keys-pred
+  [f & args]
+  (apply (if (sort-test args) 
+	   sort-keys-pred
+	   hash-keys-pred)
+	 f args))
+
+(defn vals-pred
+  [f & args]
+  (apply (if (sort-test args) 
+	   sort-vals-pred
+	   hash-vals-pred)
+	 f args))
+
+(defn keys-entry
+  [f & args]
+  (apply (if (sort-test args) 
+	   sort-keys-entry
+	   hash-keys-entry)
+	 f args))
+
+(defn vals-entry
+  [f & args]
+  (apply (if (sort-test args) 
+	   sort-vals-entry
+	   hash-vals-entry)
+	 f args))
+
+(defn keys-entry-merge
+  [merge-fn & args]
+  (apply (if (sort-test (rest args))
+	   sort-keys-entry-merge
+	   hash-keys-entry-merge)
+	 merge-fn args))

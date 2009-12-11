@@ -78,31 +78,9 @@
 (def visit-keyword (visitor name keyword))
 (def visit-symbol (visitor name symbol))
 
-(def keys-entry
-     (visitor 
-      #(proj (& % key) val)
-      (p into {})))
 
-(def vals-entry
-     (visitor 
-      #(proj key (& % val))
-      (p into {})))
-
-(def keys-pred
-     (visitor 
-      #(& % key)
-      (p into {})))
-
-(def vals-pred
-     (visitor 
-      #(& % val)
-      (p into {})))
-
-(defn keys-entry-merge 
-  "Like visit keys, but takes a merge function to resolve keys collisions."
-  [merge-fn & args]
-  (apply (visitor 
-	  #(proj (& % key) val) 
-	  (& (p apply merge-with merge-fn)
-	     (p map (p apply hash-map))))
-	 args))
+(def #^{:doc "Visitor function designed to apply a 
+transient function f to a persistent collection.
+Returns a peristent collection." 
+	:arglists '([f! & args])} 
+     quick! (visitor transient persistent!))

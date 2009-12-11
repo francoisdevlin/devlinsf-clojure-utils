@@ -1,5 +1,5 @@
 (ns lib.sfd.swing.messages
-  (:import [javax.swing JOptionPane]))
+  (:import [javax.swing JOptionPane JFileChooser]))
 
 (defn messenger-factory
   [message-type]
@@ -54,3 +54,9 @@
   "Creates a dropdown dialog.  Will block the thread it is in.  Returns the value selected, or nil if cancelled."
   ([message title coll] (dropdown-dialog message title coll nil))
   ([message title coll default] (JOptionPane/showInputDialog nil message title JOptionPane/QUESTION_MESSAGE nil (into-array coll) default)))
+
+;(defn file-open-dialog
+;  ([]))
+
+;(defn file-save-dialog
+;  ([]))

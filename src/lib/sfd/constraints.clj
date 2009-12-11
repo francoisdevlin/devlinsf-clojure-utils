@@ -10,14 +10,13 @@
     * defconstraint
     * definference
     * infer
-    * infer-all
     * infer-chain
 
     It depends on a Newton solver.  As such, the results will be limited
-    to the weaknesses of Newton's method."}
-  lib.sfd.constraints
+    to the weaknesses of Newton's method."}lib.sfd.constraints
   (:use lib.sfd.math.numerics
-	lib.sfd.pred-utils))
+	lib.sfd.pred-utils
+	lib.sfd.core))
 
 (defn find-all-free-keys
   "This is a utility fn to determine which keys are free in a map.
@@ -120,49 +119,67 @@ reutrned.
   (let [clean-map (into {} (filter second input-map))]
     (if (clean-map desired-value)
       [identity] ;Value already is in map, abort
-      ((fn inference-loop [current-map current-chain current-iter]
+      ((fn inference-loop [known-map moves current-iter]
 	(if (not (zero? current-iter))
 	  (let [end-fns (potential-fns [desired-value] inference-graph)
-		end-now (usable-fns current-map end-fns)]
+		end-now (usable-fns known-map end-fns)]
 	    (cond
 	      (empty? end-fns) nil ;Can't get to the end :(
-	      (not (empty? end-now)) (conj current-chain (first (vals end-now))) ; I can end!
+	      (not (empty? end-now)) (conj moves (first (vals end-now))) ; I can end!
 	      true (let ;Can I make a move?
-		       [next-fns (potential-fns (keys current-map) inference-graph)
-			next-now (usable-fns current-map next-fns)]
+		       [next-fns (potential-fns (keys known-map) inference-graph)
+			next-now (usable-fns known-map next-fns)]
 		     (cond
 		       (empty? next-now) nil ;Can't take next step :(
 		       true (first (filter identity
 					   (map #(let [next-move (second %) ;I can move!
-						       current-key (find-free-key (first %) current-map)]
+						       new-known (find-free-key (first %) known-map)]
 						   (inference-loop 
-						    (assoc current-map current-key 1)
-						    (conj current-chain next-move)
+						    (assoc known-map new-known 1)
+						    (conj moves next-move)
 						    (dec current-iter)))
 						next-now)))))))))
        clean-map () *max-depth*))))
-      
 
-(defn infer
-  "This attempts to infer a value based on the equations in inference-graph.
+
+(defmulti
+  #^{:doc "This attempts to infer a value based on the equations in inference-graph.
 It works by using infer-chain to determine a list of closures.
 
   It is NOT recommend using this function in a mapping operation.  Instead,
 call infer-chain and cache the resulting closures.
 
   Inference graph is a map, not a ref.  Please deref accodingly."
+     :arglists '([inference-graph desired-values known-map])} 
+  infer (fn [& args] (class (second args))))    
+
+
+(defmethod infer clojure.lang.Keyword  
   [inference-graph desired-value input-map]
   (let [clean-map (into {} (filter second input-map))
 	ic (infer-chain inference-graph desired-value input-map)]
     (if ic
       ((apply comp ic) clean-map))))
 
-(defn infer-all
-  "Infers lots o' stuff!"
+(defmethod infer :default
   [inference-graph desired-values input-map]
   ((apply comp (map #(partial infer inference-graph %) desired-values)) input-map))
 
-(defn infer-val
-  "This works like infer, but returns a double value instead of a map."
+(defmulti #^{:doc "This works like infer, but returns a double value instead of a map."}
+  infer-val (fn [& args] (class (second args))))
+ 
+(defmethod infer-val clojure.lang.Keyword
   [inference-graph desired-value input-map]
   (desired-value (infer inference-graph desired-value input-map)))
+
+(defmethod infer-val :default
+  [inference-graph desired-values input-map]
+  ((apply proj desired-values) (infer inference-graph desired-values input-map)))
+
+(defn prune
+     [inference-chain]
+     ;map over infer-chain
+     ;Remove the current value
+     ;Apply function
+     ;filter result
+     )
