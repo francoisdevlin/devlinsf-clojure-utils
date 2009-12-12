@@ -115,8 +115,8 @@ And the other five expect and return a sorted tree map.  The original comparator
 * sort-keys-map
 * sort-keys-map-merge
 
-Okay, great.  Which functions am I supposed to call as a developer?  You're telling me I have to keep track of this stuff?  
-This sounds like more work.  Are you telling me I have to do more work to get it right?
+Okay, great.  Which functions am I supposed to call as a developer?  You're telling me I have to keep track of this
+stuff?  This sounds like more work.  Are you telling me I have to do more work to get it right?
 
 No.  No you don't.  The first five functions you saw are adaptive, and choose the hash or sorted version 
 appropriately.  The worker functions are available if needed, perhaps for a slightly faster call.
