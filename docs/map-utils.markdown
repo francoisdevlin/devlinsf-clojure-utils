@@ -142,22 +142,6 @@ key :count.
 	user=> ((trans "a" (comp inc #(get % "a"))) abc123) 
 	{:a 1, :b "B", :c "C"} 
 
-##deftrans
-
-trans is a little cumbersome, generating a closure.  There is also a 
-deftrans macro.  It creates a trans and stores it in the provided 
-name: 
-
-	
-	user=> (counter abc123) 
-	{:count 3, "a" 1, "b" 2, "c" 3}
-	
-	user=> (deftrans inc-a :a (comp inc :a)) 
-	#'user/inc-a 
-
-	user=> (inc-a abc123) 
-	{:a 1, :b "B", :c "C"} 
-
 ##Using a closure
 	
 Let's revisit the fact that trans generates a closure.  We can use the 
