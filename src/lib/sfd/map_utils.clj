@@ -34,7 +34,7 @@
 (defn- kp [f] (comp f key)) 
 (defn- vp [f] (comp f val))
 (defn- ke [f] (juxt (comp f key) val))
-(defn- ve [f] (juxt key (comp f key)))
+(defn- ve [f] (juxt key (comp f val)))
 
 (defn- hash-builder [coll] (into {} coll))
 
@@ -62,7 +62,7 @@
   (apply (visitor 
 	  ke
 	  (comp (partial apply merge-with merge-fn)
-		(partail map (p apply hash-map))))
+		(partial map (partial apply hash-map))))
 	 args))
 
 (defn- sort-builder
