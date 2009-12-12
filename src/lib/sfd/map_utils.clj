@@ -33,8 +33,8 @@
 ; defining the visitor functions.
 (defn- kp [f] (comp f key)) 
 (defn- vp [f] (comp f val))
-(defn- ke [f] (juxt (comp f key) val))
-(defn- ve [f] (juxt key (comp f val)))
+(defn- km [f] (juxt (comp f key) val))
+(defn- vm [f] (juxt key (comp f val)))
 
 (defn- hash-builder [coll] (into {} coll))
 
@@ -49,18 +49,18 @@
 (def #^{:doc "Key mapping fn" 
 	:arglists '([map-fn f coll])} 
      hash-keys-map
-     (visitor ke hash-builder))
+     (visitor km hash-builder))
 
 (def #^{:doc "Val mapping fn" 
 	:arglists '([map-fn f coll])} 
      hash-vals-map
-     (visitor ve hash-builder))
+     (visitor vm hash-builder))
 
 (defn hash-keys-map-merge 
   "Like visit keys, but takes a merge function to resolve keys collisions."
   [merge-fn & args]
   (apply (visitor 
-	  ke
+	  km
 	  (comp (partial apply merge-with merge-fn)
 		(partial map (partial apply hash-map))))
 	 args))
@@ -87,20 +87,20 @@
 (defn sort-keys-map
   [f & args]
   (apply
-   (visitor ke (sort-builder args))
+   (visitor km (sort-builder args))
    f args))
 
 (defn sort-vals-map
   [f & args]
   (apply
-   (visitor ve (sort-builder args))
+   (visitor vm (sort-builder args))
    f args))
 
 (defn sort-keys-map-merge 
   "Like visit keys, but takes a merge function to resolve keys collisions."
   [merge-fn & args]
   (apply (visitor 
-	  ke
+	  km
 	  (comp (sort-builder (rest args))
 		(partial apply merge-with merge-fn)
 		(partial map (partial apply hash-map))))
@@ -144,7 +144,7 @@
 	   sort-keys-map-merge
 	   hash-keys-map-merge)
 	 merge-fn f args))
-	
+
 (defn cat-proj
   "DEPRICATED
 
