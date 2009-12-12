@@ -8,7 +8,7 @@ Dec 11, 2009
 
 Several times one has to use higher order functions on a map.  For example, a mapping operation needs to be applied to a 
 the values of a map, or a filtering operation needs to be applied to the keys of a map.  Because of Clojure's seq abstraction,
-each of this functions can be applied to a map.  However, there is often some intermediate code require to get the operation
+each of this functions can be applied to a map.  However, there is often some intermediate code required to get the operation
 to work just right.
 
 This library is intended to encapsulate the glue code for you.  All of these functions are designed to implement a visitor
@@ -27,8 +27,8 @@ For all of our examples, we'll be using the map below:
 
 There are two main functions to work with predicate functions.
 
-* keys-pred
 * vals-pred
+* keys-pred
 
 Let's jump into an example.  Suppose you want to filter the even values in our map.  We'll use `vals-pred` to 
 modify the operation of filter appropriately.
@@ -45,7 +45,7 @@ Notice how the vals-pred function applies the even? predicate to the values of e
 it works with both remove and filter.  It can be used with any predicate function, so it also works with 
 take-while and drop-while (yes, there are use cases).
 
-Let's apply a filter to the keys.  For the sake of discussion, we'll use `#{"a" "b"}` 
+Let's apply a filter to the keys.  For the sake of discussion, we'll use `#{"a" "b"}` as a predicate.
 
 	user=>(keys-pred filter #{"a" "b"} abc123)
 	{"a" 1 "b" 2}
@@ -58,45 +58,62 @@ do as a developer is keep track of is you want this to work on the values or the
 
 #Mapping functions
 
-There are often times There a three main functions for mapping functions
+There are often times one has to apply a mapping operation over a hash map. Map-utils provides three main functions for mapping functions
 
-* vals-entry
-* keys-entry
-* keys-entry-merge
+* vals-map
+* keys-map
+* keys-map-merge
 
-Let's increment every value in the map
+The first case we'll consider is when we want to apply a mapping function to each value in a map.  For our
+discussion, we'll apply `inc` to every value.
 
-	user=>(vals-entry map inc abc123)
+	user=>(vals-map map inc abc123)
 	{"a" 2 "b" 3 "c" 4}
 	
+Notice, that except for the call to `vals-map`, this appears to be a completely normal mapping form.  Hopefully 
+by know the pattern is becoming evident.  Let's use `keys-map` to capitalize every key in the collection.
 Okay, now, time to capitalize every key
 
-	user=>(keys-entry map #(.toUpperCase %) abc123)
+	user=>(keys-map map #(.toUpperCase %) abc123)
 	{"A" 1 "B" 2 "C" 3}
 	
-And, time to force a collision.  They will be merged with merge-fn.
+Once again, it is almost exactly like using a normal mapping operation, except for the leading call to `keys-pred`.
+The function worked exactly as we expect.
 
-	user=>(keys-entry-merge + map (constantly "Example") abc123)
+Now, there is an issue with mapping the keys.  It is possible to generate a collision.  Let's consider the following
+operation.
+
+	user=>(keys-map map (constantly "Example") abc123)
+	{"Example" 3}
+
+This is not necessarily the behavior we want.  In order to get around this case, use `keys-map-merge`.  This function
+takes an extra parameter, a merge-fn, that will be used in the event of a collision.
+
+	user=>(keys-map-merge + map (constantly "Example") abc123)
 	{"Example" 6}
+	
+There, much better.
 	
 #More specific forms
 
-These functions take a map in and return a map out.  However, we have not said anything about the type of map returned.  
+These functions take a map in and return a map out.  However, we have not said anything about the type of map 
+returned.  Map-utils helps the developer 
+
 There are ten more functions in this lib.  Five of them deliberately return a hash-map
 
-* hash-keys-pred
 * hash-vals-pred
-* hash-vals-entry
-* hash-keys-entry
-* hash-keys-entry-merge
+* hash-keys-pred
+* hash-vals-map
+* hash-keys-map
+* hash-keys-map-merge
 
 And the other five expect and return a sorted tree map.  The original comparator is preserved.
 
-* sort-keys-pred
 * sort-vals-pred
-* sort-vals-entry
-* sort-keys-entry
-* sort-keys-entry-merge
+* sort-keys-pred
+* sort-vals-map
+* sort-keys-map
+* sort-keys-map-merge
 
 Okay, great.  Which functions am I supposed to call as a developer?  You're telling me I have to keep track of this stuff?  
 This sounds like more work.  Are you telling me I have to do more work to get it right?

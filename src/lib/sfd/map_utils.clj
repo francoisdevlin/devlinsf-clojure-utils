@@ -29,23 +29,14 @@
      a-map
      (partition 2 params))))
 
-(defmacro deftrans
-  "This macro is analogous to defn.  It creates a trans closure based on body and binds the result to name."
-  [name & body]
-  `(def ~name (trans ~@body))) 
+; These are a collection of helper functions in 
+; defining the visitor functions.
+(defn- kp [f] (comp f key)) 
+(defn- vp [f] (comp f val))
+(defn- ke [f] (juxt (comp f key) val))
+(defn- ve [f] (juxt key (comp f key)))
 
-
-(defmacro deftrans*
-  "This macro is analogous to defn.  It creates a trans* closure based on body and binds the result to name."
-  [name & body]
-  `(def ~name (trans* ~@body))) 
-
-(def hash-builder (partial into {}))
-
-(defn kp [f] (comp f key)) 
-(defn vp [f] (comp f val))
-(defn ke [f] (juxt (comp f key) val))
-(defn ve [f] (juxt key (comp f key)))
+(defn- hash-builder [coll] (into {} coll))
 
 (def #^{:doc "Key predicate" 
 	 :arglists '([pred-fn pred coll])} 
@@ -70,8 +61,8 @@
   [merge-fn & args]
   (apply (visitor 
 	  ke
-	  (& (p apply merge-with merge-fn)
-	     (p map (p apply hash-map))))
+	  (comp (partial apply merge-with merge-fn)
+		(partail map (p apply hash-map))))
 	 args))
 
 (defn- sort-builder
@@ -148,11 +139,11 @@
 	 f args))
 
 (defn keys-map-merge
-  [merge-fn & args]
+  [merge-fn f & args]
   (apply (if (sort-test (rest args))
 	   sort-keys-map-merge
 	   hash-keys-map-merge)
-	 merge-fn args))
+	 merge-fn f args))
 	
 (defn cat-proj
   "DEPRICATED
@@ -249,3 +240,18 @@ They are progressively replaced as the arity increases."
   "DEPRICATED - use (into {} coll)"
   [& coll]
   (marshall-hashmap (partition 2 coll)))
+
+(defmacro deftrans
+  "DEPRICATED - use a normal def.
+
+This macro is analogous to defn.  It creates a trans closure based on body and binds the result to name."
+  [name & body]
+  `(def ~name (trans ~@body))) 
+
+
+(defmacro deftrans*
+  "DEPRICATED - use a normal def.
+
+This macro is analogous to defn.  It creates a trans* closure based on body and binds the result to name."
+  [name & body]
+  `(def ~name (trans* ~@body))) 
