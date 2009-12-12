@@ -97,9 +97,9 @@ There, much better.
 #More specific forms
 
 These functions take a map in and return a map out.  However, we have not said anything about the type of map 
-returned.  Map-utils helps the developer 
+returned.  Map-utils helps the developer preserve the type of map used.
 
-There are ten more functions in this lib.  Five of them deliberately return a hash-map
+All in all there are ten more functions in this lib.  Five of them deliberately return a hash-map
 
 * hash-vals-pred
 * hash-keys-pred
