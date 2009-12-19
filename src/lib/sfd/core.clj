@@ -85,60 +85,59 @@ Returns a peristent collection."
 	:arglists '([f! & args])} 
      quick! (visitor transient persistent!))
 
-(defn- same-dispatch [coll]
-  (cond
-   (map? coll) :default
-   (sorted? coll) :sorted-set
-   (set? coll) :hash-set
-   (vector? coll) :vector
-   (string? coll) :string
-   true :default))
+(defn- same-dispatch [& args]
+  (let [coll (last args)]
+    (cond
+      (string? coll) :string
+      true :default)))
 
-(defmulti same (fn [ & args] (same-dispatch (last args))))
+(defmulti
+  #^{:doc
+     "same is a mutlimethod that is designed to \"undo\" seq.  It expects
+a seq-fn that returns a normal seq, and the appropraite args.  It converts
+the resulting seq into the same type as the last argument.  If it is a 
+sorted seq, the comparator is preserved.
 
-(defmethod same :default
-  [hof f & args]
-  (apply hof f args))
-
-(defmethod same :vector
-  [hof f & args]
-  (vec (apply hof f args)))
-
-(defmethod same :hash-set
-  [hof f & args]
-  (set (apply hof f args)))
+This operation is fundamentally eager."
+     :arglists '([seq-fn & args])}
+  same same-dispatch)
 
 (defmethod same :string
   [hof f & args]
   (apply str (apply hof f args)))
 
-(defmethod same :sorted-set
+(defmethod same :default
   [hof f & args]
-  (let [c (.comparator (first args))]
-    (apply sorted-set-by c (apply hof f args))))
+  (into (empty (last args)) (apply hof f args)))
 
-(defmulti multi-same (fn [ & args] (same-dispatch (last args))))
-
-(defmethod multi-same :default
-  [hof f & args]
-  (apply hof f args))
+(defmulti
+  #^{:doc
+     "multi-same is a mutlimethod that is designed to \"undo\" seq.  It expects
+a seq-fn that returns a seq of seqs, and the appropraite args.  It converts
+the resulting element seqs into the same type as the last argument.  If it is a 
+sorted seq, the comparator is preserved."
+     :arglists '([seq-fn & args])}
+  multi-same same-dispatch)
 
 (defmethod multi-same :string
   [hof f & args]
   (map (partial apply str) (apply hof f args)))
 
-(defmethod multi-same :vector
+(defmethod multi-same :default
   [hof f & args]
-  (map vec (apply hof f args)))
+  (map (partial into (empty (last args))) (apply hof f args)))
 
-(defmethod multi-same :hash-set
-  [hof f & args]
-  (map set (apply hof f args)))
+(defn key-entry 
+  "This is a helper function for mapping operations in a hashmap.  It
+takes a fn, f, and creates a new fn that applies f to the key in each
+entry.  A two element vector representing the entry is returned."
+  [f] (fn [[k v]] [(f k) v]))
 
-(defmethod multi-same :sorted-set
-  [hof f & args]
-  (let [c (.comparator (first args))]
-    (map (partial apply sorted-set-by c) (apply hof f args))))
+(defn val-entry
+  "This is a helper function for mapping operations in a hashmap.  It
+takes a fn, f, and creates a new fn that applies f to the value in each
+entry.  A two element vector representing the entry is returned."
+  [f] (fn [[k v]] [k (f v)]))
 
 (defn alternate
   "Splits a collection by matching a predicate.  The predicate match is greedy.  It's like a regex partition."
@@ -148,22 +147,22 @@ Returns a peristent collection."
 	   r-coll coll]
       (let [item (first r-coll)
 	    split-coll (split-with #(= (nil? (pred item)) (nil? (pred %))) r-coll)
-	    new-coll (conj output (first split-coll))
+	    next-output (conj output (first split-coll))
 	    non-matching-coll (second split-coll)]
 	(if (empty? non-matching-coll)
-	  new-coll
-	  (recur new-coll non-matching-coll))))))
+	  next-output
+	  (recur next-output non-matching-coll))))))
 
 (defn split
   "Splits like a regex split."
   [pred coll]
   (remove (comp pred first) (alternate pred coll)))
 
-(defn take-last
-  "Mirrors drop-last.  Works like tail, the classic *nix command."
-  [n coll]
-  (drop (- (count coll) n) coll))
-
+(defn match
+  "Finds all of the matches."
+  [pred coll]
+  (filter (comp pred first) (alternate pred coll)))
+ 
 (defn take-until
   "Returns a lazy sequence of successive items from coll while
   (pred item) returns false. pred must be free of side-effects."
