@@ -185,7 +185,7 @@ entry.  A two element vector representing the entry is returned."
 collection is rotated right. Executes in O(n) time."
   [n coll]
   (let [c (count coll)]
-    (take c (drop (- c (mod n c)) (cycle coll)))))
+    (take c (drop (mod n c) (cycle coll)))))
 
 (defn rotate-while
   "Rotates a collection left while (pred item) is true.  Will return a unrotated

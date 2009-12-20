@@ -150,8 +150,38 @@
        test-sort-map (sorted-map \e \f \g \h)
        test-sort-map-inv (sorted-map-by inv-compare \a \b \c \d)
        ))
+
 ; take-while
+(deftest test-take-while
+  (are [input result] (= (same take-while (set "ab") input) result)
+       test-str "ab"
+       test-vec [\a \b]
+       test-seq '(\a \b)
+
+       test-sort-set (sorted-set \a \b)
+       test-sort-set-inv (sorted-set-by inv-compare))
+  (are [input result] (= (same take-while (comp (set "ab") key) input) result)
+       test-sort-map (sorted-map \a \b)
+       test-sort-map-inv (sorted-map-by inv-compare))
+  (are [input result] (= (same take-while (comp (set "ab") val) input) result)
+       test-sort-map (sorted-map \a \b)
+       test-sort-map-inv (sorted-map-by inv-compare)))
+
 ; take-until
+(deftest test-take-until
+  (are [input result] (= (same take-until (set "cd") input) result)
+       test-str "ab"
+       test-vec [\a \b]
+       test-seq '(\a \b)
+
+       test-sort-set (sorted-set \a \b)
+       test-sort-set-inv (sorted-set-by inv-compare \e \f \g \h))
+  (are [input result] (= (same take-until (comp (set "cd") key) input) result)
+       test-sort-map (sorted-map \a \b)
+       test-sort-map-inv (sorted-map-by inv-compare \e \f \g \h))
+  (are [input result] (= (same take-until (comp (set "cd") val) input) result)
+       test-sort-map (sorted-map \a \b)
+       test-sort-map-inv (sorted-map-by inv-compare \e \f \g \h)))
 
 ; take-nth
 (deftest test-take-nth
@@ -194,17 +224,95 @@
        test-sort-map (sorted-map \a \b \c \d)
        test-sort-map-inv (sorted-map-by inv-compare \e \f \g \h)
        ))
+
 ; drop-while
+(deftest test-drop-while
+  (are [input result] (= (same drop-while (set "ab") input) result)
+       test-str "cdefgh"
+       test-vec [\c \d \e \f \g \h]
+       test-seq '(\c \d \e \f \g \h)
+
+       test-sort-set (sorted-set \c \d \e \f \g \h)
+       test-sort-set-inv (sorted-set-by inv-compare \a \b \c \d \e \f \g \h))
+
+  (are [input result] (= (same drop-while (comp (set "ab") key) input) result)
+       test-sort-map (sorted-map \c \d \e \f \g \h)
+       test-sort-map-inv (sorted-map-by inv-compare \a \b \c \d \e \f \g \h))
+
+  (are [input result] (= (same drop-while (comp (set "ab") val) input) result)
+       test-sort-map (sorted-map \c \d \e \f \g \h)
+       test-sort-map-inv (sorted-map-by inv-compare \a \b \c \d \e \f \g \h)))
+
 ; drop-until
+(deftest test-drop-until
+  (are [input result] (= (same drop-until (set "cd") input) result)
+       test-str "cdefgh"
+       test-vec [\c \d \e \f \g \h]
+       test-seq '(\c \d \e \f \g \h)
+
+       test-sort-set (sorted-set \c \d \e \f \g \h)
+       test-sort-set-inv (sorted-set-by inv-compare \a \b \c \d))
+
+  (are [input result] (= (same drop-until (comp (set "cd") key) input) result)
+       test-sort-map (sorted-map \c \d \e \f \g \h)
+       test-sort-map-inv (sorted-map-by inv-compare \a \b \c \d))
+
+  (are [input result] (= (same drop-until (comp (set "cd") val) input) result)
+       test-sort-map (sorted-map \c \d \e \f \g \h)
+       test-sort-map-inv (sorted-map-by inv-compare \a \b \c \d)))
+
 
 ;;; Ordered, unsorted
 ;;; Should NOT work for sorted-map & sorted-sets
 ; reverse
-; repeat
+(deftest test-reverse
+  (are [input result] (= (same reverse input) result)
+       test-str "hgfedcba"
+       test-vec [\h \g \f \e \d \c \b \a]
+       test-seq '(\h \g \f \e \d \c \b \a)))
 
 ; sort
-; sort-by
+(deftest test-sort
+  (are [input result] (= (same sort input) result)
+       "hgfedcba" test-str
+       [\h \g \f \e \d \c \b \a] test-vec)
+  (are [input result] (= (same sort inv-compare input) result)
+       test-str "hgfedcba"
+       test-vec [\h \g \f \e \d \c \b \a]
+       ))
+
+;sort-by
+(deftest test-sort-by
+  (are [input result] (= (same sort-by dirty-upcase input) result)
+       "hgfedcba" test-str
+       [\h \g \f \e \d \c \b \a] test-vec)
+  (are [input result] (= (same sort-by dirty-upcase inv-compare input) result)
+       test-str "hgfedcba"
+       test-vec [\h \g \f \e \d \c \b \a]))
 
 ; rotate
+(deftest test-rotate
+  (are [input result] (= (same rotate 1 input) result)
+       test-str "bcdefgha"
+       test-vec [\b \c \d \e \f \g \h \a]
+       test-seq '(\b \c \d \e \f \g \h \a)))
+
 ; rotate-while
+(deftest test-rotate-while
+  (are [input result] (= (same rotate-while (set "ab") input) result)
+       test-str "cdefghab"
+       test-vec [\c \d \e \f \g \h \a \b]
+       test-seq '(\c \d \e \f \g \h \a \b)))
+
 ; rotate-until
+(deftest test-rotate-until
+  (are [input result] (= (same rotate-until (set "cd") input) result)
+       test-str "cdefghab"
+       test-vec [\c \d \e \f \g \h \a \b]
+       test-seq '(\c \d \e \f \g \h \a \b)))
+
+;;;String only stuff
+; repeat
+(deftest test-repeat
+  (are [input result] (= (same repeat 2 input) result)
+       test-str "abcdefghabcdefgh"))
