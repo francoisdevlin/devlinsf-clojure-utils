@@ -1,5 +1,4 @@
-;(ns lib.sfd.same-test.clj
-(ns user
+(ns lib.sfd.same-test.clj
   (:use lib.sfd.core
 	clojure.test))
 

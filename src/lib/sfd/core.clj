@@ -100,12 +100,12 @@ This operation is fundamentally eager."
   same same-dispatch)
 
 (defmethod same String
-  [hof f & args]
+  [hof & args]
   (apply str (apply hof f args)))
 
 (defmethod same clojure.lang.LazySeq
-  [hof f & args]
-  (apply hof f args))
+  [hof & args]
+  (apply hof args))
 
 (defmethod same :default
   [hof & args]
