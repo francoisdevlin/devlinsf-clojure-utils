@@ -143,30 +143,6 @@ entry.  A two element vector representing the entry is returned."
 takes a fn, f, and creates a new fn that applies f to the value in each
 entry.  A two element vector representing the entry is returned."
   [f] (fn [[k v]] [k (f v)]))
-
-(defn alternate
-  "Splits a collection by matching a predicate.  The predicate match is greedy.  It's like a regex partition."
-  [pred coll]
-  (lazy-seq
-    (loop [output []
-	   r-coll coll]
-      (let [item (first r-coll)
-	    split-coll (split-with #(= (nil? (pred item)) (nil? (pred %))) r-coll)
-	    next-output (conj output (first split-coll))
-	    non-matching-coll (second split-coll)]
-	(if (empty? non-matching-coll)
-	  next-output
-	  (recur next-output non-matching-coll))))))
-
-(defn split
-  "Splits like a regex split."
-  [pred coll]
-  (remove (comp pred first) (alternate pred coll)))
-
-(defn match
-  "Finds all of the matches."
-  [pred coll]
-  (filter (comp pred first) (alternate pred coll)))
  
 (defn take-until
   "Returns a lazy sequence of successive items from coll while

@@ -20,6 +20,25 @@
   (char (- (int c) 32)))
 
 ;;; Unodered tests
+; cons
+; Yes, conj is the idiomatic way to do this.
+(deftest test-cons
+  (are [input result] (= (same cons \z input) result)
+       test-str "zabcdefgh"
+       test-vec [\z \a \b \c \d \e \f \g \h]
+       test-seq '(\z \a \b \c \d \e \f \g \h)
+
+       test-hash-set #{\z \a \b \c \d \e \f \g \h}
+       test-sort-set (sorted-set \z \a \b \c \d \e \f \g \h)
+       test-sort-set-inv (sorted-set-by inv-compare \z \a \b \c \d \e \f \g \h))
+
+  (are [input result] (= (same cons [\y \z] input) result)
+       test-hash-map {\a \b \c \d \e \f \g \h \y \z}
+       test-sort-map (sorted-map \a \b \c \d \e \f \g \h \y \z)
+       test-sort-map-inv (sorted-map-by inv-compare \a \b \c \d \e \f \g \h \y \z)
+       ))
+
+
 ; map
 (deftest test-map
   (are [input result] (= (same map dirty-upcase input)
