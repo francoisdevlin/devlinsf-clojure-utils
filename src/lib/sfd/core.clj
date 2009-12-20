@@ -45,7 +45,7 @@
   "This is comp's twin.  comp takes a collection of functions, and applied them in series.
   fn-tuple takes a collection of functions, and applies them in parallel."
   [& coll]
-  (fn[& args](vec(map #(apply % args) coll))))
+  (fn[& args](vec (map #(apply % args) coll))))
 
 (def proj fn-tuple)
 
@@ -86,10 +86,7 @@ Returns a peristent collection."
      quick! (visitor transient persistent!))
 
 (defn- same-dispatch [& args]
-  (let [coll (last args)]
-    (cond
-      (string? coll) :string
-      true :default)))
+  (class (last args)))
 
 (defmulti
   #^{:doc
@@ -102,13 +99,17 @@ This operation is fundamentally eager."
      :arglists '([seq-fn & args])}
   same same-dispatch)
 
-(defmethod same :string
+(defmethod same String
   [hof f & args]
   (apply str (apply hof f args)))
 
-(defmethod same :default
+(defmethod same clojure.lang.LazySeq
   [hof f & args]
-  (into (empty (last args)) (apply hof f args)))
+  (apply hof f args))
+
+(defmethod same :default
+  [hof & args]
+  (into (empty (last args)) (apply hof args)))
 
 (defmulti
   #^{:doc
@@ -119,9 +120,13 @@ sorted seq, the comparator is preserved."
      :arglists '([seq-fn & args])}
   multi-same same-dispatch)
 
-(defmethod multi-same :string
-  [hof f & args]
-  (map (partial apply str) (apply hof f args)))
+(defmethod multi-same String
+  [hof & args]
+  (map (partial apply str) (apply hof args)))
+
+(defmethod same clojure.lang.LazySeq
+  [hof & args]
+  (apply hof args))
 
 (defmethod multi-same :default
   [hof f & args]
