@@ -132,7 +132,7 @@ sorted seq, the comparator is preserved."
   [hof f & args]
   (map (partial into (empty (last args))) (apply hof f args)))
 
-(defn key-entry 
+(defn key-entry
   "This is a helper function for mapping operations in a hashmap.  It
 takes a fn, f, and creates a new fn that applies f to the key in each
 entry.  A two element vector representing the entry is returned."
