@@ -104,28 +104,37 @@ Returns a peristent collection."
 (defmulti
   #^{:doc
      "same is a mutlimethod that is designed to \"undo\" seq.  It expects
-a seq-fn that returns a normal seq, and the appropraite args.  It converts
-the resulting seq into the same type as the last argument.  If it is a 
-sorted seq, the comparator is preserved.
+a seq-fn that returns a normal seq, and the appropraite args.  By default 
+it converts the resulting seq into the same type as the last argument.  An
+optional leading integer, index, can be provided to specify the index of the
+argument that should be used to convert the seq.  If it is a sorted seq, 
+the comparator is preserved.
 
-This operation is fundamentally eager."
-     :arglists '([seq-fn & args])}
+This operation is fundamentally eager, unless a lazy seq is detected.  In 
+this case no conversion is attempted, and laziness is preserved."
+     :arglists '([index seq-fn & args])}
   same same-dispatch)
 
 (defmethod same String
   [& args]
-  (apply str (apply (same-args args))))
+  (let [s-args (same-args args)
+	f (first s-args)
+	a (rest s-args)]
+    (apply str (apply f a))))
 
 (defmethod same clojure.lang.LazySeq
   [& args]
   (let [s-args (same-args args)
 	f (first s-args)
 	a (rest s-args)]
-  (apply (same-args args)))
+  (apply f a)))
 
 (defmethod same :default
   [& args]
-  (into (empty (same-coll args)) (apply (same-args args))))
+  (let [s-args (same-args args)
+	f (first s-args)
+	a (rest s-args)]
+    (into (empty (same-coll args)) (apply f a))))
 
 ;(defn same
 ;  [& args]
