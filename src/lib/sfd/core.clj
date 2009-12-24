@@ -86,13 +86,16 @@ Returns a peristent collection."
      quick! (visitor transient persistent!))
 
 (defn same-args
+  "This is a helper function that determines the appropriate
+arguments for the same multimethod."
   [args]
   (if (integer? (first args))
     (rest args)
     args))
 
 (defn same-coll
-  "A helper function to determine the collection type."
+  "A helper function to determine the collection type for the
+same multimethod."
   [args]
   (if (integer? (first args))
     (nth (rest args) (first args))
@@ -136,39 +139,35 @@ this case no conversion is attempted, and laziness is preserved."
 	a (rest s-args)]
     (into (empty (same-coll args)) (apply f a))))
 
-;(defn same
-;  [& args]
-;  (if (integer? (first args))
-;    (let [idx (first args)
-;	  r-args (rest args)
-;	  dispatch (class (nth r-args idx))
-;	  method (get-method same* dispatch)]
-;      (apply method r-args)
-      ;method
-      ;dispatch
-;      )
-;    (apply same* args)))
-
 (defmulti
   #^{:doc
      "multi-same is a mutlimethod that is designed to \"undo\" seq.  It expects
 a seq-fn that returns a seq of seqs, and the appropraite args.  It converts
 the resulting element seqs into the same type as the last argument.  If it is a 
 sorted seq, the comparator is preserved."
-     :arglists '([seq-fn & args])}
+     :arglists '([index seq-fn & args])}
   multi-same same-dispatch)
 
 (defmethod multi-same String
-  [hof & args]
-  (map (partial apply str) (apply hof args)))
+  [& args]
+  (let [s-args (same-args args)
+	f (first s-args)
+	a (rest s-args)]
+  (map (partial apply str) (apply f a))))
 
-(defmethod same clojure.lang.LazySeq
-  [hof & args]
-  (apply hof args))
+(defmethod multi-same clojure.lang.LazySeq
+  [& args]
+  (let [s-args (same-args args)
+	f (first s-args)
+	a (rest s-args)]
+    (apply f a)))
 
 (defmethod multi-same :default
-  [hof f & args]
-  (map (partial into (empty (last args))) (apply hof f args)))
+  [& args]
+  (let [s-args (same-args args)
+	f (first s-args)
+	a (rest s-args)]
+    (map (partial into (empty (same-coll args))) (apply f a))))
 
 (defn key-entry
   "This is a helper function for mapping operations in a hashmap.  It
