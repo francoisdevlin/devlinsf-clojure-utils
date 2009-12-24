@@ -1,5 +1,6 @@
 (ns lib.sfd.same-test.clj
   (:use lib.sfd.core
+	lib.sfd.seq-utils
 	clojure.test))
 
 ;;Standard fixtures

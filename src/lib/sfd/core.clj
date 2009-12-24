@@ -85,7 +85,7 @@ Returns a peristent collection."
 	:arglists '([f! & args])} 
      quick! (visitor transient persistent!))
 
-(defn same-args
+(defn hof-args
   "This is a helper function that determines the appropriate
 arguments for the same multimethod."
   [args]
@@ -93,7 +93,7 @@ arguments for the same multimethod."
     (rest args)
     args))
 
-(defn same-coll
+(defn hof-target
   "A helper function to determine the collection type for the
 same multimethod."
   [args]
@@ -102,7 +102,7 @@ same multimethod."
     (last args)))
 
 (defn- same-dispatch [& args]
-  (class (same-coll args)))
+  (class (hof-target args)))
 
 (defmulti
   #^{:doc
@@ -120,24 +120,24 @@ this case no conversion is attempted, and laziness is preserved."
 
 (defmethod same String
   [& args]
-  (let [s-args (same-args args)
+  (let [s-args (hof-args args)
 	f (first s-args)
 	a (rest s-args)]
     (apply str (apply f a))))
 
 (defmethod same clojure.lang.LazySeq
   [& args]
-  (let [s-args (same-args args)
+  (let [s-args (hof-args args)
 	f (first s-args)
 	a (rest s-args)]
   (apply f a)))
 
 (defmethod same :default
   [& args]
-  (let [s-args (same-args args)
+  (let [s-args (hof-args args)
 	f (first s-args)
 	a (rest s-args)]
-    (into (empty (same-coll args)) (apply f a))))
+    (into (empty (hof-target args)) (apply f a))))
 
 (defmulti
   #^{:doc
@@ -150,24 +150,24 @@ sorted seq, the comparator is preserved."
 
 (defmethod multi-same String
   [& args]
-  (let [s-args (same-args args)
+  (let [s-args (hof-args args)
 	f (first s-args)
 	a (rest s-args)]
   (map (partial apply str) (apply f a))))
 
 (defmethod multi-same clojure.lang.LazySeq
   [& args]
-  (let [s-args (same-args args)
+  (let [s-args (hof-args args)
 	f (first s-args)
 	a (rest s-args)]
     (apply f a)))
 
 (defmethod multi-same :default
   [& args]
-  (let [s-args (same-args args)
+  (let [s-args (hof-args args)
 	f (first s-args)
 	a (rest s-args)]
-    (map (partial into (empty (same-coll args))) (apply f a))))
+    (map (partial into (empty (hof-target args))) (apply f a))))
 
 (defn key-entry
   "This is a helper function for mapping operations in a hashmap.  It
@@ -180,35 +180,3 @@ entry.  A two element vector representing the entry is returned."
 takes a fn, f, and creates a new fn that applies f to the value in each
 entry.  A two element vector representing the entry is returned."
   [f] (fn [[k v]] [k (f v)]))
- 
-(defn take-until
-  "Returns a lazy sequence of successive items from coll while
-  (pred item) returns false. pred must be free of side-effects."
-  [pred coll]
-  (take-while (complement pred) coll))
-
-(defn drop-until
-  "Returns a lazy sequence of the items in coll starting from the first
-  item for which (pred item) returns true."
-  [pred coll]
-  (drop-while (complement pred) coll))
-
-(defn rotate
-  "Take a collection and left rotates it n steps.  If n is negative, the
-collection is rotated right. Executes in O(n) time."
-  [n coll]
-  (let [c (count coll)]
-    (take c (drop (mod n c) (cycle coll)))))
-
-(defn rotate-while
-  "Rotates a collection left while (pred item) is true.  Will return a unrotated
-sequence if (pred item) is never true. Executes in O(n) time."
-  [pred coll]
-  (let [head (drop-while pred coll)]
-    (take (count coll) (concat head coll))))
-
-(defn rotate-until
-  "Rotates a collection left while (pred item) is nil.  Will return a unrotated
-sequence if (pred item) is always true. Executes in O(n) time."
-  [pred coll]
-  (rotate-while (complement pred) coll))
