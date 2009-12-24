@@ -85,8 +85,21 @@ Returns a peristent collection."
 	:arglists '([f! & args])} 
      quick! (visitor transient persistent!))
 
+(defn same-args
+  [args]
+  (if (integer? (first args))
+    (rest args)
+    args))
+
+(defn same-coll
+  "A helper function to determine the collection type."
+  [args]
+  (if (integer? (first args))
+    (nth (rest args) (first args))
+    (last args)))
+
 (defn- same-dispatch [& args]
-  (class (last args)))
+  (class (same-coll args)))
 
 (defmulti
   #^{:doc
@@ -100,16 +113,32 @@ This operation is fundamentally eager."
   same same-dispatch)
 
 (defmethod same String
-  [hof & args]
-  (apply str (apply hof f args)))
+  [& args]
+  (apply str (apply (same-args args))))
 
 (defmethod same clojure.lang.LazySeq
-  [hof & args]
-  (apply hof args))
+  [& args]
+  (let [s-args (same-args args)
+	f (first s-args)
+	a (rest s-args)]
+  (apply (same-args args)))
 
 (defmethod same :default
-  [hof & args]
-  (into (empty (last args)) (apply hof args)))
+  [& args]
+  (into (empty (same-coll args)) (apply (same-args args))))
+
+;(defn same
+;  [& args]
+;  (if (integer? (first args))
+;    (let [idx (first args)
+;	  r-args (rest args)
+;	  dispatch (class (nth r-args idx))
+;	  method (get-method same* dispatch)]
+;      (apply method r-args)
+      ;method
+      ;dispatch
+;      )
+;    (apply same* args)))
 
 (defmulti
   #^{:doc
