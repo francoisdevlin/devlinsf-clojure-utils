@@ -60,6 +60,22 @@
        (defn ~proj-symbol ~doc-string? [~input-map-symbol]
 	 ((proj ~@param-list) ~input-map-symbol)))))
 
+(defn hof-args
+  "This is a helper function that determines the appropriate
+arguments for the same multimethod."
+  [args]
+  (if (integer? (first args))
+    (rest args)
+    args))
+
+(defn hof-target
+  "A helper function to determine the collection type for the
+same multimethod."
+  [args]
+  (if (integer? (first args))
+    (nth (rest args) (first args))
+    (last args)))
+
 (defn visitor
   "Used to implement visitor patterns.  (first (args)) is modified by the visitor function"
   [visit-fn return-fn]
@@ -85,21 +101,6 @@ Returns a peristent collection."
 	:arglists '([f! & args])} 
      quick! (visitor transient persistent!))
 
-(defn hof-args
-  "This is a helper function that determines the appropriate
-arguments for the same multimethod."
-  [args]
-  (if (integer? (first args))
-    (rest args)
-    args))
-
-(defn hof-target
-  "A helper function to determine the collection type for the
-same multimethod."
-  [args]
-  (if (integer? (first args))
-    (nth (rest args) (first args))
-    (last args)))
 
 (defn- same-dispatch [& args]
   (class (hof-target args)))

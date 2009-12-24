@@ -47,7 +47,7 @@
 	  (recur next-output non-matching-coll))))))
 
 (defn split
-  "Splits like a greedy regex split."
+  "Splits like a \\+ regex split."
   [pred coll]
   (remove (comp pred first) (alternate pred coll)))
 
@@ -63,6 +63,6 @@
 
 (defn replace-pred-map
   "Replaces all values that match the predicate with
-(f val)."
+ (f val)."
   [pred f coll]
   (map #(if (pred %) (f %) %) coll))

@@ -13,7 +13,7 @@
     * infer-chain
 
     It depends on a Newton solver.  As such, the results will be limited
-    to the weaknesses of Newton's method."}lib.sfd.constraints
+    to the weaknesses of Newton's method."}lib.sfd.equations
   (:use lib.sfd.math.numerics
 	lib.sfd.pred-utils
 	lib.sfd.core))
@@ -37,7 +37,7 @@
     (if (= (count remaining-keys) 1)
       (first remaining-keys))))
 
-(defn solve-constraint
+(defn solve-equation
   "This solves a constraint fn with respect to free-var (a keyword).
   Typically constraints end with a * suffix."
   [constraint free-var a-map]
@@ -45,15 +45,15 @@
     (solve target-fn :diff-method :richardson)))
 
 
-(defmacro defconstraint
-  "Creates a constraint.  This macro defines three functions.
+(defmacro defequation
+  "Creates an equation.  This macro defines three functions.
 
   * sym*, which is the actual constraint.  It should be equal to zero.
   * sym-val, a closure to determine the actual value of the free fn.
   * sym, which returns a map.  The result of sym-val is assoc'd with 
   the free vairable."
   ([sym binding left right] 
-     `(defconstraint ~sym "" ~binding ~left ~right))
+     `(defequation ~sym "" ~binding ~left ~right))
   ([sym doc-string binding left right]
      (let [star-sym (symbol (str sym "*"))
 	   val-sym (symbol (str sym "-val"))	
@@ -74,7 +74,7 @@
 	    (- ~left ~right))
 	  (defn ~val-sym ~val-doc [~'constraints-map]
 	    (let [~free-key (find-free-key ~keywords ~'constraints-map)]
-	      (if ~free-key (solve-constraint ~star-sym ~free-key ~'constraints-map))))
+	      (if ~free-key (solve-equation ~star-sym ~free-key ~'constraints-map))))
 	  (defn ~sym ~sym-doc [~'constraints-map]
 	    (let [~free-key (find-free-key ~keywords ~'constraints-map)]
 	      (if ~free-key (assoc ~'constraints-map ~free-key (~val-sym ~'constraints-map)))))
@@ -91,7 +91,7 @@
   ([sym doc-string binding inference-graph-ref left right]
      (let [keywords (vec (map keyword binding))]
        `(do      
-	  (defconstraint ~sym ~doc-string ~binding ~left ~right)
+	  (defequation ~sym ~doc-string ~binding ~left ~right)
 	  (dosync (alter ~inference-graph-ref assoc ~keywords ~sym))))))
 
 (def *max-depth* 10)
@@ -109,7 +109,7 @@
 (defn infer-chain
   "This function does the heavy lifting for the infer method.
 It inspects the input-map, and apllies any constraints that
-have exactly one free variable.  Once a constraint that can
+have exactly one free variable.  Once a equation that can
 find desired value is found, the resulting closure chain is
 reutrned.
 
