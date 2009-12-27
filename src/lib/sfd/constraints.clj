@@ -1,27 +1,25 @@
 (ns lib.sfd.constraints
   (:use lib.sfd.core))
 
-(defn old-pre-constraint
-  [pre post]
-  (fn[& args]
-    {:pre [(if (integer? (first args))
-	     (pre (nth (rest args) (first args) (constantly false)))
-	     (pre (last args)))]}
-    (if (integer? (first args))
-      (let [r-args (rest args)]
-	(apply (first r-args) (rest r-args)))
-      (apply (first args) (rest args)))))
-
 (defn pre-constraint
-  [pred]
-  (fn[& args]
-    {:pre [(pred (hof-target args))]}
-    (let [h-args (hof-args args)
-	  f (first h-args)
-	  a (rest h-args)]
-      (apply f a))))
+  "Takes a predicates and generates a pre closure that applies
+a pre constraint.  It defaults to applying it to the last value,
+but the constraint takes an optional integer to specify the index
+to apply the constraint to.  The index may be negative to specify
+indexing from the end of the list."
+  ([pred] (pre-constraint pred -1))
+  ([pred idx]
+     (fn[& args]
+       {:pre [(pred (hof-target args idx))]}
+       (let [h-args (hof-args args)
+	     f (first h-args)
+	     a (rest h-args)]
+	 (apply f a)))))
 
 (defn post-constraint
+  "Generates a closure just like pre-constaint, except it is a
+post condidtion.  The default is to apply the predicate to the
+fn result."
   [pred]
   (fn[& args]
     {:post [(if (integer? (first args))

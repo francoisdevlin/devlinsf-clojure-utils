@@ -71,10 +71,11 @@ arguments for the same multimethod."
 (defn hof-target
   "A helper function to determine the collection type for the
 same multimethod."
-  [args]
-  (if (integer? (first args))
-    (nth (rest args) (first args))
-    (last args)))
+  ([args] (hof-target args -1))
+  ([args idx]
+     (if (integer? (first args))
+       (nth (rest args) (mod (first args) (count (rest args))))
+       (nth args (mod idx (count args))))))
 
 (defn visitor
   "Used to implement visitor patterns.  (first (args)) is modified by the visitor function"
