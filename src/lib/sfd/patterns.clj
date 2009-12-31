@@ -56,13 +56,13 @@
   [pred coll]
   (filter (comp pred first) (alternate pred coll)))
 
-(defn replace-pred
-  "Replaces all values that match the predicate"
+(defn replace-if
+  "Replaces all values that match the predicate with the
+rep(lacement) value."
   [pred rep coll]
   (map #(if (pred %) rep %) coll))
 
-(defn replace-pred-map
-  "Replaces all values that match the predicate with
- (f val)."
+(defn map-if
+  "maps f if the predicate is true.  Otherwise returns identity."
   [pred f coll]
   (map #(if (pred %) (f %) %) coll))

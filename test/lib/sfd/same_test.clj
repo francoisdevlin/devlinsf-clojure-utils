@@ -1,4 +1,4 @@
-(ns lib.sfd.same-test.clj
+(ns lib.sfd.same-test
   (:use lib.sfd.core
 	lib.sfd.seq-utils
 	clojure.test))
@@ -329,6 +329,18 @@
        test-str "cdefghab"
        test-vec [\c \d \e \f \g \h \a \b]
        test-seq '(\c \d \e \f \g \h \a \b)))
+
+(deftest test-interpose
+  (are [input result] (= (same interpose \z input) result)
+       test-str "azbzczdzezfzgzh"
+       test-vec [\a \z \b \z \c \z \d \z \e \z \f \z \g \z \h]
+       test-seq '(\a \z \b \z \c \z \d \z \e \z \f \z \g \z \h))
+  (are [input result] (= (same 1 interpose "z" input) result)
+       test-str "azbzczdzezfzgzh"
+       test-vec "azbzczdzezfzgzh"
+       test-seq "azbzczdzezfzgzh"
+       test-sort-set "azbzczdzezfzgzh"
+       test-sort-set-inv "hzgzfzezdzczbza"))
 
 ;;;String only stuff
 ; repeat
