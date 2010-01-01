@@ -1,5 +1,5 @@
 (ns lib.sfd.same-test
-  (:use lib.sfd.core
+  (:use lib.sfd.same
 	lib.sfd.seq-utils
 	clojure.test))
 
