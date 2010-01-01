@@ -55,14 +55,3 @@
   "Finds all of the matches."
   [pred coll]
   (filter (comp pred first) (alternate pred coll)))
-
-(defn replace-if
-  "Replaces all values that match the predicate with the
-rep(lacement) value."
-  [pred rep coll]
-  (map #(if (pred %) rep %) coll))
-
-(defn map-if
-  "maps f if the predicate is true.  Otherwise returns identity."
-  [pred f coll]
-  (map #(if (pred %) (f %) %) coll))

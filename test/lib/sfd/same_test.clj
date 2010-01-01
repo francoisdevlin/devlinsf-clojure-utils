@@ -1,4 +1,4 @@
-(ns lib.sfd.same-test
+(ns user
   (:use lib.sfd.core
 	lib.sfd.seq-utils
 	clojure.test))
@@ -68,6 +68,36 @@
        test-sort-map (sorted-map \a \B \c \D \e \F \g \H)
        test-sort-map-inv (sorted-map-by inv-compare \a \B \c \D \e \F \g \H)
        ))
+
+;map-if
+(deftest test-map-if
+  (are [input result] (= (same map-if #{\a \e} dirty-upcase input) result)
+       test-str "AbcdEfgh"
+       test-vec [\A \b \c \d \E \f \g \h]
+       test-seq '(\A \b \c \d \E \f \g \h)
+
+       test-hash-set #{\A \b \c \d \E \f \g \h}
+       test-sort-set (sorted-set \A \b \c \d \E \f \g \h)
+       test-sort-set-inv (sorted-set-by inv-compare \A \b \c \d \E \f \g \h))
+  (are [input result] (= (same map-if (comp #{\a \e} key) (val-entry dirty-upcase) input) result)
+       test-hash-map {\a \B \c \d \e \F \g \h}
+       test-sort-map (sorted-map \a \B \c \d \e \F \g \h)
+       test-sort-map-inv (sorted-map-by inv-compare \a \B \c \d \e \F \g \h)))
+
+;replace-if
+(deftest test-replace-if
+  (are [input result] (= (same replace-if #{\a \e} \z input) result)
+       test-str "zbcdzfgh"
+       test-vec [\z \b \c \d \z \f \g \h]
+       test-seq '(\z \b \c \d \z \f \g \h)
+
+       test-hash-set #{\z \b \c \d \f \g \h}
+       test-sort-set (sorted-set \z \b \c \d \f \g \h)
+       test-sort-set-inv (sorted-set-by inv-compare \z \b \c \d \f \g \h))
+  (are [input result] (= (same replace-if (comp #{\a \e} key) [\y \z] input) result)
+       test-hash-map {\y \z \c \d \g \h}
+       test-sort-map (sorted-map \y \z \c \d \g \h)
+       test-sort-map-inv (sorted-map-by inv-compare \y \z \c \d \g \h)))
   
 ; filter
 (deftest test-filter
@@ -330,11 +360,13 @@
        test-vec [\c \d \e \f \g \h \a \b]
        test-seq '(\c \d \e \f \g \h \a \b)))
 
+;interpose
 (deftest test-interpose
   (are [input result] (= (same interpose \z input) result)
        test-str "azbzczdzezfzgzh"
        test-vec [\a \z \b \z \c \z \d \z \e \z \f \z \g \z \h]
        test-seq '(\a \z \b \z \c \z \d \z \e \z \f \z \g \z \h))
+  ;;Mimics str-join.  Awesome-tastic!
   (are [input result] (= (same 1 interpose "z" input) result)
        test-str "azbzczdzezfzgzh"
        test-vec "azbzczdzezfzgzh"

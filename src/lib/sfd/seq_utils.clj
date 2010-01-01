@@ -31,3 +31,40 @@ sequence if (pred item) is never true. Executes in O(n) time."
 sequence if (pred item) is always true. Executes in O(n) time."
   [pred coll]
   (rotate-while (complement pred) coll))
+
+(defn replace-if
+  "Replaces all values that match the predicate with the
+rep(lacement) value."
+  [pred rep coll]
+  (map #(if (pred %) rep %) coll))
+
+(defn map-if
+  "maps f if the predicate is true.  Otherwise returns identity."
+  [pred f coll]
+  (map #(if (pred %) (f %) %) coll))
+
+(defn l-just
+  "Modelled after the ljust method in the ruby string class."
+  [n pad-coll coll]
+  (let [remaining (- n (count coll))]
+    (if (pos? remaining
+      (concat coll (take remaining (cycle pad-coll)))
+      coll)))
+
+(defn r-just
+  "Modelled after the rjust method in the ruby string class."
+  [n pad-coll coll]
+  (let [remaining (- n (count coll))]
+    (if (pos? remaining)
+      (concat coll (take remaining (cycle pad-coll)))
+      coll)))
+
+;(defn squeeze)
+;Should be easy enough to use w/ partition by
+
+(defn clear-locals [x]
+  ((fn [y]
+     (delay (try (do-something y)
+		 (catch Exception e
+		   (println "argument value:" x))))) x))
+   
