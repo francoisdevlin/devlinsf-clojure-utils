@@ -1,4 +1,4 @@
-(ns user
+(ns lib.sfd.same-test
   (:use lib.sfd.core
 	lib.sfd.seq-utils
 	clojure.test))
@@ -155,6 +155,16 @@
 
 ; replace
 ; TO DO
+(deftest test-replace
+  (are [input result] (= (same replace {\a \z} input) result)
+       test-str "zbcdefgh"
+       test-vec [\z \b \c \d \e \f \g \h]
+       test-seq '(\z \b \c \d \e \f \g \h)
+
+       test-hash-set #{\z \b \c \d \e \f \g \h}
+       test-sort-set (sorted-set \z \b \c \d \e \f \g \h)
+       test-sort-set-inv (sorted-set-by inv-compare \z \b \c \d \e \f \g \h)
+       ))
 
 ;;; Ordered tests
 ;;; Should NOT work consistently for hash-maps & hash-sets
