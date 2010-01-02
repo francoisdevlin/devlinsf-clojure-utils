@@ -154,7 +154,6 @@
        test-sort-map-inv (sorted-map-by inv-compare \a \b \c \d)))
 
 ; replace
-; TO DO
 (deftest test-replace
   (are [input result] (= (same replace {\a \z} input) result)
        test-str "zbcdefgh"

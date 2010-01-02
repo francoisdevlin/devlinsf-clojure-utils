@@ -47,7 +47,7 @@ rep(lacement) value."
   "Modelled after the ljust method in the ruby string class."
   [n pad-coll coll]
   (let [remaining (- n (count coll))]
-    (if (pos? remaining
+    (if (pos? remaining)
       (concat coll (take remaining (cycle pad-coll)))
       coll)))
 
@@ -62,9 +62,4 @@ rep(lacement) value."
 ;(defn squeeze)
 ;Should be easy enough to use w/ partition by
 
-(defn clear-locals [x]
-  ((fn [y]
-     (delay (try (do-something y)
-		 (catch Exception e
-		   (println "argument value:" x))))) x))
    

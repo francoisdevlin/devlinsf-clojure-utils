@@ -101,3 +101,12 @@ transient function f to a persistent collection.
 Returns a peristent collection." 
 	:arglists '([f! & args])} 
      quick! (visitor transient persistent!))
+
+
+(defn fnil-2
+  [f & defaults]
+  (fn[& args]
+    (let [used-args (map (fn [default-value value]
+			   (if value value default-value))
+			 defaults args)]
+      (apply f used-args))))
