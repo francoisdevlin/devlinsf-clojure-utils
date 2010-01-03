@@ -1,12 +1,40 @@
 (ns lib.sfd.same)
 
-(defn- hof-args
-  "This is a helper function that determines the appropriate
-arguments for the same multimethod."
-  [args]
-  (if (integer? (first args))
-    (rest args)
-    args))
+
+(defprotocol same-p
+  (my-into [to from] "Mimics into with specific overloading for same")
+  (my-empty [coll] "Mimics empty with specific overloading for same")
+  (to-seqable [coll] "Mimics seq if required"))
+
+(extend java.lang.Object 
+	same-p 
+	{:my-into into
+	 :my-empty empty
+	 :to-seqable identity})
+
+(extend java.lang.String
+	same-p 
+	{:my-into (fn[to from] (apply str to from))
+	 :my-empty (constantly "")
+	 :to-seqable identity})
+
+(extend clojure.lang.Keyword
+	same-p 
+	{:my-into (fn[to from] (keyword (apply str from)))
+	 :my-empty (constantly :key)
+	 :to-seqable name})
+
+(extend clojure.lang.Symbol
+	same-p 
+	{:my-into (fn[to from] (symbol (apply str from)))
+	 :my-empty (constantly 'sym)
+	 :to-seqable name})
+
+(extend clojure.lang.LazySeq
+	same-p
+	{:my-into (fn[to from] from)
+	 :my-empty (fn [coll] (take 1 '()))
+	 :to-seqable identity})
 
 (defn- hof-target
   "A helper function to determine the collection type for the
@@ -17,24 +45,14 @@ same multimethod."
        (nth (rest args) (mod (first args) (count (rest args))))
        (nth args (mod idx (count args))))))
 
-(defprotocol same-p
-  (my-into [to from] "Mimics into with specific overloading for same")
-  (my-empty [coll] "Mimics empty with specific overloading for same"))
-
-(extend java.lang.Object 
-	same-p 
-	{:my-into into
-	 :my-empty empty})
-
-(extend java.lang.String
-	same-p 
-	{:my-into (fn[to from] (apply str to from))
-	 :my-empty (constantly "")})
-
-(extend clojure.lang.LazySeq
-	same-p
-	{:my-into (fn[to from] from)
-	 :my-empty (fn [coll] (take 1 '()))})
+(defn- hof-args
+  "This is a helper function that determines the appropriate
+arguments for the same multimethod."
+  [args]
+  (let [idx (if (integer? (first args)) (first args))
+	temp-args (vec (if idx (rest args) args))
+	idx (if idx idx (dec (count temp-args)))]
+    (assoc temp-args idx (to-seqable (hof-target args)))))
 
 (defn same
   "same is a fn that is designed to \"undo\" seq.  It expects
