@@ -17,12 +17,27 @@ same multimethod."
        (nth (rest args) (mod (first args) (count (rest args))))
        (nth args (mod idx (count args))))))
 
-(defn- same-dispatch [& args]
-  (class (hof-target args)))
+(defprotocol same-p
+  (my-into [to from] "Mimics into with specific overloading for same")
+  (my-empty [coll] "Mimics empty with specific overloading for same"))
 
-(defmulti
-  #^{:doc
-     "same is a mutlimethod that is designed to \"undo\" seq.  It expects
+(extend java.lang.Object 
+	same-p 
+	{:my-into into
+	 :my-empty empty})
+
+(extend java.lang.String
+	same-p 
+	{:my-into (fn[to from] (apply str to from))
+	 :my-empty (constantly "")})
+
+(extend clojure.lang.LazySeq
+	same-p
+	{:my-into (fn[to from] from)
+	 :my-empty (fn [coll] (take 1 '()))})
+
+(defn same
+  "same is a fn that is designed to \"undo\" seq.  It expects
 a seq-fn that returns a normal seq, and the appropraite args.  By default 
 it converts the resulting seq into the same type as the last argument.  An
 optional leading integer, index, can be provided to specify the index of the
@@ -31,59 +46,22 @@ the comparator is preserved.
 
 This operation is fundamentally eager, unless a lazy seq is detected.  In 
 this case no conversion is attempted, and laziness is preserved."
-     :arglists '([index seq-fn & args])}
-  same same-dispatch)
-
-(defmethod same String
   [& args]
   (let [s-args (hof-args args)
 	f (first s-args)
 	a (rest s-args)]
-    (apply str (apply f a))))
+    (my-into (my-empty (hof-target args)) (apply f a))))
 
-(defmethod same clojure.lang.LazySeq
-  [& args]
-  (let [s-args (hof-args args)
-	f (first s-args)
-	a (rest s-args)]
-  (apply f a)))
-
-(defmethod same :default
-  [& args]
-  (let [s-args (hof-args args)
-	f (first s-args)
-	a (rest s-args)]
-    (into (empty (hof-target args)) (apply f a))))
-
-(defmulti
-  #^{:doc
-     "multi-same is a mutlimethod that is designed to \"undo\" seq.  It expects
+(defn multi-same
+  "multi-same is a fn that is designed to \"undo\" seq.  It expects
 a seq-fn that returns a seq of seqs, and the appropraite args.  It converts
 the resulting element seqs into the same type as the last argument.  If it is a 
 sorted seq, the comparator is preserved."
-     :arglists '([index seq-fn & args])}
-  multi-same same-dispatch)
-
-(defmethod multi-same String
   [& args]
   (let [s-args (hof-args args)
 	f (first s-args)
 	a (rest s-args)]
-  (map (partial apply str) (apply f a))))
-
-(defmethod multi-same clojure.lang.LazySeq
-  [& args]
-  (let [s-args (hof-args args)
-	f (first s-args)
-	a (rest s-args)]
-    (apply f a)))
-
-(defmethod multi-same :default
-  [& args]
-  (let [s-args (hof-args args)
-	f (first s-args)
-	a (rest s-args)]
-    (map (partial into (empty (hof-target args))) (apply f a))))
+    (map (partial my-into (my-empty (hof-target args))) (apply f a))))
 
 (defn key-entry
   "This is a helper function for mapping operations in a hashmap.  It

@@ -1,24 +1,26 @@
-(ns lib.sfd.same-test
+;(ns lib.sfd.same-test
+(ns user
   (:use lib.sfd.same
 	lib.sfd.seq-utils
 	clojure.test))
 
 ;;Standard fixtures
-(def inv-compare (comp - compare))
-(def test-str "abcdefgh")
-(def test-vec (vec test-str))
-(def test-seq (take 8 test-str))
+(do
+  (def inv-compare (comp - compare))
+  (def test-str "abcdefgh")
+  (def test-vec (vec test-str))
+  (def test-seq (take 8 test-str))
+  
+  (def test-hash-set (set test-str))
+  (def test-sort-set (apply sorted-set test-str))
+  (def test-sort-set-inv (apply sorted-set-by inv-compare test-str))
 
-(def test-hash-set (set test-str))
-(def test-sort-set (apply sorted-set test-str))
-(def test-sort-set-inv (apply sorted-set-by inv-compare test-str))
+  (def test-hash-map (apply hash-map test-str))
+  (def test-sort-map (apply sorted-map test-str))
+  (def test-sort-map-inv (apply sorted-map-by inv-compare test-str))
 
-(def test-hash-map (apply hash-map test-str))
-(def test-sort-map (apply sorted-map test-str))
-(def test-sort-map-inv (apply sorted-map-by inv-compare test-str))
-
-(defn dirty-upcase [c]
-  (char (- (int c) 32)))
+  (defn dirty-upcase [c]
+    (-> c int (- 32) char)))
 
 ;;; Unodered tests
 ; cons
