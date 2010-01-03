@@ -21,13 +21,13 @@
 (extend clojure.lang.Keyword
 	same-p 
 	{:my-into (fn[to from] (keyword (apply str from)))
-	 :my-empty (constantly :key)
+	 :my-empty (constantly (keyword ""))
 	 :to-seqable name})
 
 (extend clojure.lang.Symbol
 	same-p 
-	{:my-into (fn[to from] (symbol (apply str from)))
-	 :my-empty (constantly 'sym)
+	{:my-into (fn[to from] (symbol (apply str (name to) from)))
+	 :my-empty (constantly (symbol ""))
 	 :to-seqable name})
 
 (extend clojure.lang.LazySeq
