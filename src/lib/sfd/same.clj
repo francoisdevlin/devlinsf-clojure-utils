@@ -1,6 +1,5 @@
 (ns lib.sfd.same)
 
-
 (defprotocol same-p
   (my-into [to from] "Mimics into with specific overloading for same")
   (my-empty [coll] "Mimics empty with specific overloading for same")
@@ -20,7 +19,7 @@
 
 (extend clojure.lang.Keyword
 	same-p 
-	{:my-into (fn[to from] (keyword (apply str from)))
+	{:my-into (fn[to from] (keyword (apply str (name to) from)))
 	 :my-empty (constantly (keyword ""))
 	 :to-seqable name})
 
@@ -34,6 +33,30 @@
 	same-p
 	{:my-into (fn[to from] from)
 	 :my-empty (fn [coll] (take 1 '()))
+	 :to-seqable identity})
+
+(extend clojure.lang.PersistentList
+	same-p 
+	{:my-into (comp reverse into)
+	 :my-empty empty
+	 :to-seqable identity})
+
+(extend clojure.lang.PersistentList$EmptyList
+	same-p 
+	{:my-into (comp reverse into)
+	 :my-empty empty
+	 :to-seqable identity})
+
+(extend clojure.lang.StringSeq
+	same-p 
+	{:my-into (comp reverse into)
+	 :my-empty (constantly (seq " "))
+	 :to-seqable identity})
+
+(extend clojure.lang.AMapEntry
+	same-p 
+	{:my-into (fn [to from] (into [] from))
+	 :my-empty (constantly [])
 	 :to-seqable identity})
 
 (defn- hof-target
@@ -65,9 +88,7 @@ the comparator is preserved.
 This operation is fundamentally eager, unless a lazy seq is detected.  In 
 this case no conversion is attempted, and laziness is preserved."
   [& args]
-  (let [s-args (hof-args args)
-	f (first s-args)
-	a (rest s-args)]
+  (let [[f & a] (hof-args args)]
     (my-into (my-empty (hof-target args)) (apply f a))))
 
 (defn multi-same
@@ -76,9 +97,7 @@ a seq-fn that returns a seq of seqs, and the appropraite args.  It converts
 the resulting element seqs into the same type as the last argument.  If it is a 
 sorted seq, the comparator is preserved."
   [& args]
-  (let [s-args (hof-args args)
-	f (first s-args)
-	a (rest s-args)]
+  (let [[f & a] (hof-args args)]
     (map (partial my-into (my-empty (hof-target args))) (apply f a))))
 
 (defn key-entry
