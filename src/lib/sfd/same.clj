@@ -50,7 +50,7 @@
 (extend clojure.lang.StringSeq
 	same-p 
 	{:my-into (comp reverse into)
-	 :my-empty (constantly (seq " "))
+	 :my-empty (constantly (seq " ")) ;This was my best shot...
 	 :to-seqable identity})
 
 (extend clojure.lang.AMapEntry
@@ -70,7 +70,7 @@ same multimethod."
 
 (defn- hof-args
   "This is a helper function that determines the appropriate
-arguments for the same multimethod."
+arguments for the same fn."
   [args]
   (let [idx (if (integer? (first args)) (first args))
 	temp-args (vec (if idx (rest args) args))
