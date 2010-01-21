@@ -2,62 +2,56 @@
 
 (defprotocol same-p
   (my-into [to from] "Mimics into with specific overloading for same")
-  (my-empty [coll] "Mimics empty with specific overloading for same")
+  (my-empty [coll] "Mimics empty with specific overloading for same"))
+
+(defprotocol seq-p
   (to-seqable [coll] "Mimics seq if required"))
 
 (extend java.lang.Object 
 	same-p 
 	{:my-into into
-	 :my-empty empty
-	 :to-seqable identity})
+	 :my-empty empty}
+	seq-p
+	 {:to-seqable identity})
 
 (extend java.lang.String
 	same-p 
 	{:my-into (fn[to from] (apply str to from))
-	 :my-empty (constantly "")
-	 :to-seqable identity})
-
-(extend clojure.lang.Keyword
-	same-p 
-	{:my-into (fn[to from] (keyword (apply str (name to) from)))
-	 :my-empty (constantly (keyword ""))
-	 :to-seqable name})
-
-(extend clojure.lang.Symbol
-	same-p 
-	{:my-into (fn[to from] (symbol (apply str (name to) from)))
-	 :my-empty (constantly (symbol ""))
-	 :to-seqable name})
+	 :my-empty (constantly "")})
 
 (extend clojure.lang.LazySeq
 	same-p
 	{:my-into (fn[to from] from)
-	 :my-empty (fn [coll] (take 1 '()))
-	 :to-seqable identity})
+	 :my-empty (fn [coll] (take 1 '()))})
 
 (extend clojure.lang.PersistentList
 	same-p 
 	{:my-into (comp reverse into)
-	 :my-empty empty
-	 :to-seqable identity})
+	 :my-empty empty})
 
 (extend clojure.lang.PersistentList$EmptyList
 	same-p 
 	{:my-into (comp reverse into)
-	 :my-empty empty
-	 :to-seqable identity})
-
-(extend clojure.lang.StringSeq
-	same-p 
-	{:my-into (comp reverse into)
-	 :my-empty (constantly (seq " ")) ;This was my best shot...
-	 :to-seqable identity})
+	 :my-empty empty})
 
 (extend clojure.lang.AMapEntry
 	same-p 
 	{:my-into (fn [to from] (into [] from))
-	 :my-empty (constantly [])
-	 :to-seqable identity})
+	 :my-empty (constantly [])})
+
+(extend clojure.lang.Keyword
+	same-p 
+	{:my-into (fn[to from] (keyword (apply str (name to) from)))
+	 :my-empty (constantly (keyword ""))}
+	seq-p
+	{:to-seqable name})
+
+(extend clojure.lang.Symbol
+	same-p 
+	{:my-into (fn[to from] (symbol (apply str (name to) from)))
+	 :my-empty (constantly (symbol ""))}
+	seq-p
+	{:to-seqable name})
 
 (defn- hof-target
   "A helper function to determine the collection type for the
