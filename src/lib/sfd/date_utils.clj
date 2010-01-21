@@ -1,4 +1,6 @@
-(ns lib.sfd.date-utils
+(ns #^{:doc "My first attempt at a date library, now depricated. Use
+incanter.chrono instead :)"}
+  lib.sfd.date-utils
   (:use clojure.contrib.str-utils))
 
 (def field-consts

@@ -1,4 +1,6 @@
-(ns lib.sfd.joda-utils
+(ns #^{:doc "My first attempt at a date library, now depricated. Use
+incanter.chrono instead :)"}
+  lib.sfd.joda-utils
   (:use clojure.contrib.str-utils
 	lib.sfd.date-utils)
   (:import (org.joda.time DateTime

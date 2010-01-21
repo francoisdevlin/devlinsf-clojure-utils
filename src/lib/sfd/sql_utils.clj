@@ -1,4 +1,5 @@
-(ns lib.sfd.sql-utils
+(ns #^{:doc "An attempt at a sql-lib.  Never took off."}
+  lib.sfd.sql-utils
   (:use lib.sfd.core
 	lib.sfd.str-utils
 	lib.sfd.map-utils

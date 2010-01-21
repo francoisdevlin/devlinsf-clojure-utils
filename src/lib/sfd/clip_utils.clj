@@ -1,4 +1,4 @@
-(ns ^#{:doc "This is a collection of utilities I use to
+(ns #^{:doc "This is a collection of utilities I use to
 interact with the clipboard.  Very, very useful for data
 munging."}
   lib.sfd.clip-utils)

@@ -1,4 +1,6 @@
-(ns lib.sfd.patterns)
+(ns #^{:doc "Beginning of a super generic parsing lib.
+Currently designed to support string handlnig w/same"}
+    lib.sfd.patterns)
 
 (let [union (fn [& args] (set (apply concat args)))
       char-set (fn [start stop] (set (map char (range start stop))))
