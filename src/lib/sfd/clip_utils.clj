@@ -1,19 +1,15 @@
-(ns lib.sfd.clip-utils)
-  ;(:import (java.awt.datatransfer Clipboard 
-;				  ClipboardOwner
-;				  Transferable
-;				  StringSelection
-;				  DataFlavor
-;				  UnsupportedFlavorException)
-;	   java.awt.Toolkit))
+(ns ^#{:doc "This is a collection of utilities I use to
+interact with the clipboard.  Very, very useful for data
+munging."}
+  lib.sfd.clip-utils)
 
-;java.awt.datatransfer.
-
-(defn get-sys-clip
+(defn- get-sys-clip
+  "A helper fn to get the clipboard object"
   []
   (. (java.awt.Toolkit/getDefaultToolkit) getSystemClipboard))
 
 (defn get-clip
+  "Get the contents of the clipboard.  Currently only supports text."
   []
   (let [clipboard (get-sys-clip)]
     (if clipboard
@@ -24,6 +20,7 @@
 	 true (. contents getTransferData java.awt.datatransfer.DataFlavor/stringFlavor))))))
 
 (defn set-clip!
+  "Set the contents of the clipboard.  Currently only supports text."
   [input-string]
   (if input-string
     (let [clipboard (get-sys-clip)]
@@ -33,16 +30,12 @@
 	    (. clipboard setContents selection nil))
 	  input-string)))))
 
-(defmacro defclip
-  [symbol-name]
-  `(def ~symbol-name (get-clip)))
-
 (defn read-clip
+  "Used to read an s-expression in the clipboard."
   []
   (read-string (get-clip)))
 
 (defn eval-clip
+  "Used to evaluate an s-expression in the clipboard."
   []
   (eval (read-clip)))
-
-(+ 2 2)

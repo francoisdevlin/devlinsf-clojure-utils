@@ -1,7 +1,7 @@
 (ns lib.sfd.sql-utils
-  (:use lib.devlinsf.core
-	lib.devlinsf.str-utils
-	lib.devlinsf.map-utils
+  (:use lib.sfd.core
+	lib.sfd.str-utils
+	lib.sfd.map-utils
 	clojure.contrib.sql))
 
 ;;Connection Util
