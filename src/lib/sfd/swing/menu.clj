@@ -1,5 +1,5 @@
 (ns lib.sfd.swing.menu
-  (:import (javax.swing JMenu JMenuItem JMenuBar JSeparator))
+  (:import (javax.swing JMenu JMenuItem JMenuBar JSeparator JPopupMenu KeyStroke))
   (:require [lib.sfd.swing [events :as events]]))
 
 (defn menu-bar 
@@ -28,3 +28,18 @@
 (defn menu-sep
   []
   (JSeparator. ))
+
+(defn popup-menu
+  [& items]
+  (let [a-menu (JPopupMenu. )]
+    (do
+      (doseq [an-item items]
+	(.add a-menu an-item))
+      a-menu)))
+
+(defn accel
+  "Sets the accellerator for a menu item.  Returns the menu item."
+  ([m vk] (accel m vk 0))
+  ([m vk mods]
+     (doto m
+       (.setAccelerator  (KeyStroke/getKeyStroke vk mods)))))
