@@ -80,13 +80,13 @@ sorted seq, the comparator is preserved."
   ([f arg1 arg2 arg3] (map (partial my-into (my-empty arg3)) (f arg1 arg2 (to-seqable arg3))))
   ([f arg1 arg2 arg3 & more] (map (partial my-into (my-empty arg3)) (f arg1 arg2 arg3 (seqify-last more)))))
 
-(defn key-entry
+(defn fkey
   "This is a helper function for mapping operations in a hashmap.  It
 takes a fn, f, and creates a new fn that applies f to the key in each
 entry.  A two element vector representing the entry is returned."
   [f] (fn [[k v]] [(f k) v]))
 
-(defn val-entry
+(defn fval
   "This is a helper function for mapping operations in a hashmap.  It
 takes a fn, f, and creates a new fn that applies f to the value in each
 entry.  A two element vector representing the entry is returned."
