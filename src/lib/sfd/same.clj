@@ -53,46 +53,32 @@
 	seq-p
 	{:to-seqable name})
 
-(defn- hof-target
-  "A helper function to determine the collection type for the
-same multimethod."
-  ([args] (hof-target args -1))
-  ([args idx]
-     (if (integer? (first args))
-       (nth (rest args) (mod (first args) (count (rest args))))
-       (nth args (mod idx (count args))))))
-
-(defn- hof-args
-  "This is a helper function that determines the appropriate
-arguments for the same fn."
+(defn- seqify-last
   [args]
-  (let [idx (if (integer? (first args)) (first args))
-	temp-args (vec (if idx (rest args) args))
-	idx (if idx idx (dec (count temp-args)))]
-    (assoc temp-args idx (to-seqable (hof-target args)))))
+  (let [[h t] (split-at (dec (count args)))]
+    (concat h (to-seqable t))))
 
 (defn same
   "same is a fn that is designed to \"undo\" seq.  It expects
-a seq-fn that returns a normal seq, and the appropraite args.  By default 
-it converts the resulting seq into the same type as the last argument.  An
-optional leading integer, index, can be provided to specify the index of the
-argument that should be used to convert the seq.  If it is a sorted seq, 
-the comparator is preserved.
+a seq-fn that returns a normal seq, and the appropraite args.
+It converts the resulting seq into the same type as the last argument.
 
 This operation is fundamentally eager, unless a lazy seq is detected.  In 
 this case no conversion is attempted, and laziness is preserved."
-  [& args]
-  (let [[f & a] (hof-args args)]
-    (my-into (my-empty (hof-target args)) (apply f a))))
+  ([f arg1] (my-into (my-empty arg1) (f (to-seqable arg1))))
+  ([f arg1 arg2] (my-into (my-empty arg2) (f arg1 (to-seqable arg2))))
+  ([f arg1 arg2 arg3] (my-into (my-empty arg3) (f arg1 arg2 (to-seqable arg3))))
+  ([f arg1 arg2 arg3 & more] (my-into (my-empty (last more)) (apply f arg1 arg2 arg3 (seqify-last more)))))
 
 (defn multi-same
   "multi-same is a fn that is designed to \"undo\" seq.  It expects
 a seq-fn that returns a seq of seqs, and the appropraite args.  It converts
 the resulting element seqs into the same type as the last argument.  If it is a 
 sorted seq, the comparator is preserved."
-  [& args]
-  (let [[f & a] (hof-args args)]
-    (map (partial my-into (my-empty (hof-target args))) (apply f a))))
+  ([f arg1] (map (partial my-into (my-empty arg1)) (f (to-seqable arg1))))
+  ([f arg1 arg2] (map (partial my-into (my-empty arg2)) (f arg1 (to-seqable arg2))))
+  ([f arg1 arg2 arg3] (map (partial my-into (my-empty arg3)) (f arg1 arg2 (to-seqable arg3))))
+  ([f arg1 arg2 arg3 & more] (map (partial my-into (my-empty arg3)) (f arg1 arg2 arg3 (seqify-last more)))))
 
 (defn key-entry
   "This is a helper function for mapping operations in a hashmap.  It
