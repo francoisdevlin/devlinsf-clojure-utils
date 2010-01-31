@@ -54,31 +54,39 @@
 	{:to-seqable name})
 
 (defn- seqify-last
+  "This is a helper fn designed to wrap the last argument with a to-seqable call."
   [args]
-  (let [[h t] (split-at (dec (count args)))]
+  (let [[h t] (split-at (dec (count args)) args)]
     (concat h (to-seqable t))))
 
 (defn same
-  "same is a fn that is designed to \"undo\" seq.  It expects
-a seq-fn that returns a normal seq, and the appropraite args.
-It converts the resulting seq into the same type as the last argument.
+  "same is a fn that is designed to \"undo\" seq.  It expects a seq-fn that
+returns a normal seq, and the appropraite args. It converts the resulting
+seq into the same type as the last argument.
 
 This operation is fundamentally eager, unless a lazy seq is detected.  In 
 this case no conversion is attempted, and laziness is preserved."
-  ([f arg1] (my-into (my-empty arg1) (f (to-seqable arg1))))
-  ([f arg1 arg2] (my-into (my-empty arg2) (f arg1 (to-seqable arg2))))
-  ([f arg1 arg2 arg3] (my-into (my-empty arg3) (f arg1 arg2 (to-seqable arg3))))
-  ([f arg1 arg2 arg3 & more] (my-into (my-empty (last more)) (apply f arg1 arg2 arg3 (seqify-last more)))))
+  ([f arg1]
+     (my-into (my-empty arg1) (f (to-seqable arg1))))
+  ([f arg1 arg2]
+     (my-into (my-empty arg2) (f arg1 (to-seqable arg2))))
+  ([f arg1 arg2 arg3]
+     (my-into (my-empty arg3) (f arg1 arg2 (to-seqable arg3))))
+  ([f arg1 arg2 arg3 & more]
+     (my-into (my-empty (last more)) (apply f arg1 arg2 arg3 (seqify-last more)))))
 
 (defn multi-same
-  "multi-same is a fn that is designed to \"undo\" seq.  It expects
-a seq-fn that returns a seq of seqs, and the appropraite args.  It converts
-the resulting element seqs into the same type as the last argument.  If it is a 
-sorted seq, the comparator is preserved."
-  ([f arg1] (map (partial my-into (my-empty arg1)) (f (to-seqable arg1))))
-  ([f arg1 arg2] (map (partial my-into (my-empty arg2)) (f arg1 (to-seqable arg2))))
-  ([f arg1 arg2 arg3] (map (partial my-into (my-empty arg3)) (f arg1 arg2 (to-seqable arg3))))
-  ([f arg1 arg2 arg3 & more] (map (partial my-into (my-empty arg3)) (f arg1 arg2 arg3 (seqify-last more)))))
+  "multi-same is a fn that is designed to \"undo\" seq.  It expects a seq-fn
+that returns a seq of seqs, and the appropraite args.  It converts the resulting
+element seqs into the same type as the last argument."
+  ([f arg1]
+     (map (partial my-into (my-empty arg1)) (f (to-seqable arg1))))
+  ([f arg1 arg2]
+     (map (partial my-into (my-empty arg2)) (f arg1 (to-seqable arg2))))
+  ([f arg1 arg2 arg3]
+     (map (partial my-into (my-empty arg3)) (f arg1 arg2 (to-seqable arg3))))
+  ([f arg1 arg2 arg3 & more]
+     (map (partial my-into (my-empty arg3)) (f arg1 arg2 arg3 (seqify-last more)))))
 
 (defn fkey
   "This is a helper function for mapping operations in a hashmap.  It

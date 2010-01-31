@@ -13,7 +13,8 @@
     * infer-chain
 
     It depends on a Newton solver.  As such, the results will be limited
-    to the weaknesses of Newton's method."}lib.sfd.equations
+    to the weaknesses of Newton's method."}
+  lib.sfd.equations
   (:use lib.sfd.math.numerics
 	lib.sfd.pred-utils
 	lib.sfd.core))

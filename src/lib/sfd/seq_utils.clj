@@ -49,7 +49,7 @@ rep(lacement) value."
   (let [remaining (- n (count coll))]
     (if (pos? remaining)
       (concat coll (take remaining (cycle pad-coll)))
-      coll)))
+      (take n coll))))
 
 (defn r-just
   "Modelled after the rjust method in the ruby string class."
@@ -57,7 +57,7 @@ rep(lacement) value."
   (let [remaining (- n (count coll))]
     (if (pos? remaining)
       (concat coll (take remaining (cycle pad-coll)))
-      coll)))
+      (take n coll))))
 
 ;(defn squeeze)
 ;Should be easy enough to use w/ partition by

@@ -2,8 +2,8 @@
   (:import [javax.swing JFrame JTree
 	    JTextArea JTextField JButton
 	    JSplitPane JScrollPane
-	    KeyStroke]
-	   [javax.swing.tree TreeSelectionModel]
+	    KeyStroke ImageIcon]
+	   [javax.swing.tree TreeSelectionModel DefaultTreeCellRenderer]
 	   [java.awt.event KeyEvent InputEvent])
   (:use clojure.inspector
 	clojure.walk
@@ -12,6 +12,13 @@
 	lib.sfd.swing.menu
 	lib.sfd.swing.messages
 	lib.sfd.clip-utils))
+
+(def ctrl-key
+     (if (= ((into {} (System/getProperties)) "os.name")
+	    "Mac OS X")
+       InputEvent/META_DOWN_MASK
+       InputEvent/CTRL_DOWN_MASK))
+       
 
 (defn macroexpand-all-sfd
   "Recursively performs all possible macroexpansions in form."
@@ -27,21 +34,41 @@ an empty map if the symbol doesn't exist."
     (eval `(meta (var ~s)))
     {}))
 
+(def parent-frame nil)
+
+(def tree-renderer
+     (let [default-renderer (DefaultTreeCellRenderer. )
+	   default-leaf (.getLeafIcon default-renderer)]
+       (proxy [DefaultTreeCellRenderer] []
+	   (getTreeCellRendererComponent
+	    [tree value selected? expanded? leaf? row has-focus?]
+	    (do
+	      (if (fn? value)
+		(.setLeafIcon default-leaf)
+		(.setLeafIcon nil))
+	      (.getTreeCellRendererComponent
+	       default-renderer
+	       tree value selected? expanded? leaf? row has-focus?)
+	      )))))
+	      
+
 (defn display-doc
   [s]
   (let [m (safe-meta s)
 	arglists (:arglists m)
 	docstring (if (:doc m)
 		    (:doc m)
-		    "No Docstring Available")]
+		    "No Docstring Available")
+	text (doto (JTextArea.
+		    (str s "\nArgs:\n" (str-join "\n" (map str arglists)) "\n\n  "
+			 (str-join " " (map trim (split-lines docstring)))))
+	       (.setLineWrap true)
+	       (.setEditable false))
+	scroll (JScrollPane. text)]
     (doto (JFrame. (str "Help for " s))
-      (.add (JScrollPane. (doto (JTextArea.
-				 (str s "\nArgs:\n" (str-join "\n" (map str arglists)) "\n\n  "
-				      (str-join " " (map trim (split-lines docstring)))))
-			    (.setLineWrap true)
-			    (.setEditable false))))
+      (.add scroll)
       (.setVisible true)
-      (.setSize 480 200))))
+      (.setSize 300 200))))
 
 (defn get-selected-node
   "A specialized fn to get the first selected item in a tree.  Works
@@ -60,13 +87,29 @@ well with a SINGLE_TREE_SELECTION model."
   [tree]
   (eval (get-selected-node tree)))
 
+(defn realize-lazy-seq
+  [tree]
+  (do
+    (doall (take 10 (eval-node tree)))))
+    
+
+
 (defn eval-node-menu-item
   [tree]
-  (menu-item "Eval"
-	     (fn [evt]
-	       (try (plain-message (eval-node tree))
-		    (catch Exception e (error-message (str e)))))))
+  (accel (menu-item "Eval"
+		    (fn [evt]
+		      (try (plain-message (eval-node tree))
+			   (catch Exception e (error-message (str e))))))
+	 KeyEvent/VK_F5))
 
+(defn realize-seq-menu-item
+  [tree]
+  (accel (menu-item "Realize Seq"
+		    (fn [evt]
+		      (try (plain-message (str-join " " (realize-lazy-seq tree)))
+			   (catch Exception e (error-message (str e))))))
+	 KeyEvent/VK_F5 InputEvent/SHIFT_DOWN_MASK))
+  
 
 (defn deep-inspect
   "Creates a graphical (Swing) inspector on the supplied hierarchical data"
@@ -76,7 +119,7 @@ well with a SINGLE_TREE_SELECTION model."
 	make-macro-menu (fn [title f vk]
 			  (accel (menu-item title
 					    (fn [evt] (.setModel tree (tree-model (f @expr)))))
-				 vk InputEvent/CTRL_DOWN_MASK))
+				 vk ctrl-key))
 	mb (menu-bar
 	    (menu "Edit"
 		  (menu-item "Copy"
@@ -85,6 +128,9 @@ well with a SINGLE_TREE_SELECTION model."
 			     (fn [evt] (send expr (fn [a] (let [new-data (read-clip)]
 							    (.setModel tree (tree-model new-data))
 							    new-data))))))
+	    (menu "Exp. Eval"
+		  (eval-node-menu-item tree)
+		  (realize-seq-menu-item tree))
 	    (menu "Macros"
 		  (make-macro-menu "None" identity KeyEvent/VK_1)
 		  (make-macro-menu "Expand" macroexpand KeyEvent/VK_2)
@@ -93,11 +139,15 @@ well with a SINGLE_TREE_SELECTION model."
 	    (menu "Help"
 		  (make-doc-menu-item tree)))]
     (do (-> tree .getSelectionModel (.setSelectionMode TreeSelectionModel/SINGLE_TREE_SELECTION))
-	(.setComponentPopupMenu tree (popup-menu (make-doc-menu-item tree)
-						 (eval-node-menu-item tree)
-						 (menu-item "Sub Inspector"
+	(doto tree
+	  (.setComponentPopupMenu (popup-menu (make-doc-menu-item tree)
+					      (eval-node-menu-item tree)
+					      (realize-seq-menu-item tree)
+					      (menu-item "Sub Inspector"
 							 (fn [evt]
 							   (deep-inspect (get-selected-node tree))))))
+	  ;(.setCellRenderer tree-renderer)
+	  )
 	(doto (JFrame. "Clojure Inspector")
 	  (.add (JScrollPane. tree))
 	  (.setJMenuBar mb)
