@@ -87,9 +87,9 @@ join function is provided, it is used on both the left & right hand sides.")
 (defn natural-join
   "Performs the natural join.  If there are no keys that intersect, the join is not performed."
   [left-coll right-coll]
-  (let [left-keys (keys (first left-coll))
-	right-keys (keys (first right-coll))
-	intersect (intersection (set left-keys) (set right-keys))]
+  (let [intersect (apply intersection
+			 (map (comp set keys first)
+			      [left-coll right-coll]))]
     (if (empty? intersect)
       []
       (inner-join left-coll right-coll (apply fn-tuple intersect)))))

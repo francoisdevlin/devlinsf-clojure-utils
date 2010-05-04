@@ -115,7 +115,10 @@ well with a SINGLE_TREE_SELECTION model."
   "Creates a graphical (Swing) inspector on the supplied hierarchical data"
   [data]
   (let [expr (agent data)
+	inspector (JFrame. "Clojure Inspector")
 	tree (JTree. (tree-model @expr))
+	eval-menu (eval-node-menu-item tree)
+	real-seq-menu (realize-seq-menu-item tree)
 	make-macro-menu (fn [title f vk]
 			  (accel (menu-item title
 					    (fn [evt] (.setModel tree (tree-model (f @expr)))))
@@ -129,8 +132,8 @@ well with a SINGLE_TREE_SELECTION model."
 							    (.setModel tree (tree-model new-data))
 							    new-data))))))
 	    (menu "Exp. Eval"
-		  (eval-node-menu-item tree)
-		  (realize-seq-menu-item tree))
+		  eval-menu
+		  real-seq-menu)
 	    (menu "Macros"
 		  (make-macro-menu "None" identity KeyEvent/VK_1)
 		  (make-macro-menu "Expand" macroexpand KeyEvent/VK_2)
@@ -141,15 +144,15 @@ well with a SINGLE_TREE_SELECTION model."
     (do (-> tree .getSelectionModel (.setSelectionMode TreeSelectionModel/SINGLE_TREE_SELECTION))
 	(doto tree
 	  (.setComponentPopupMenu (popup-menu (make-doc-menu-item tree)
-					      (eval-node-menu-item tree)
-					      (realize-seq-menu-item tree)
+					      eval-menu
+					      real-seq-menu
 					      (menu-item "Sub Inspector"
 							 (fn [evt]
 							   (deep-inspect (get-selected-node tree))))))
 	  ;(.setCellRenderer tree-renderer)
 	  )
-	(doto (JFrame. "Clojure Inspector")
+	(doto inspector
 	  (.add (JScrollPane. tree))
 	  (.setJMenuBar mb)
-	  (.setSize 400 400)
+	  (.setSize 720 480)
 	  (.setVisible true)))))
