@@ -5,7 +5,7 @@
 
 (defn messenger-factory
   [message-type]
-  (fn [m t] (JOptionPane/showMessageDialog parnet-frame m t message-type nil)))
+  (fn [m t] (JOptionPane/showMessageDialog *parent-frame* m t message-type nil)))
 
 (defn plain-message
   "Creates a dialog that shows a plain message.  Will block the thread it is in.  Returns nil."
